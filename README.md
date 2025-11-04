@@ -1,93 +1,90 @@
 # My City
+# my-city
 
+Brief project README for the "my-city" software engineering project. This repository contains analysis material and artifacts for a university course project; development is ongoing.
 
+## Project summary
 
-## Getting started
+my-city is a student software engineering project that models and documents a city-related application (requirements, use cases and architecture artifacts). The repository currently contains analysis and design documents — the implementation is not yet present.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Goals:
+- Collect and formalise requirements and use cases for the system
+- Produce architecture and design artifacts (UML diagrams, user stories)
+- Move from analysis to implementation in a future phase
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Status: Under construction — analysis and design phase. See the "Progress & next steps" section below.
 
-## Add your files
+## Repository layout
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+Top-level folders (current):
 
-```
-cd existing_repo
-git remote add origin https://gitlab.hof-university.de/s-sys-e/my-city.git
-git branch -M main
-git push -uf origin main
-```
+- `Anforderungsanalyse/` — requirements analysis (in German). Contains functional and non-functional requirements, acceptance criteria, and related documents.
+- `Use Case Diagramm/` — use case diagrams and related UML artifacts.
 
-## Integrate with your tools
+Additions planned:
 
-- [ ] [Set up project integrations](https://gitlab.hof-university.de/s-sys-e/my-city/-/settings/integrations)
+- `src/` — implementation sources (to be created)
+- `docs/` — generated documentation and design notes
+- `tests/` — automated tests
+- `contributing.md` — contribution guide
 
-## Collaborate with your team
+If you add files, please follow the agreed naming conventions and keep design artifacts in the `docs/` or dedicated UML folders.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+## How to read and use this repository
 
-## Test and Deploy
+- Start in `Anforderungsanalyse/` to review the problem scope and acceptance criteria.
+- Open diagrams in `Use Case Diagramm/` to understand user interactions and system boundaries.
+- If you plan to implement features, create a new `feature/<short-name>` branch and add an entry to the project board or the `TODO.md` backlog.
 
-Use the built-in continuous integration in GitLab.
+No build or runtime environment is currently defined; this repository is primarily a documentation and analysis workspace.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## Contribution guide (short)
 
-***
+1. Fork or create a branch for your work: `feature/<your-topic>`.
+2. Add or update analysis/design artifacts in their respective folders.
+3. Open a merge request (or pull request) describing the change, motivation and any open questions.
+4. For code contributions (future): include tests and a short README for the new module.
 
-# Editing this README
+Before contributing analysis documents, discuss major changes in issues or in-class with the project lead.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## Progress & next steps
 
-## Suggestions for a good README
+Current progress:
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+- Requirements documented (in progress).
+- Use case diagrams collected.
+- No source code yet.
 
-## Name
-Choose a self-explaining name for your project.
+Next steps (recommended):
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+1. Finalise and review the requirements (acceptance criteria, use cases).
+2. Create `docs/` with a short architecture overview (context diagram, component sketch).
+3. Create an initial `src/` skeleton (choose technology stack — e.g., Java / Spring Boot, Node.js, or similar) and add a minimal README for the implementation.
+4. Add a `CONTRIBUTING.md`, `LICENSE` and a project `TODO.md` backlog.
+5. If appropriate, add CI configuration for linting/tests once implementation begins.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Assumptions
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+- This repository is primarily for coursework: documents and UML artifacts are the priority for the current semester.
+- Language: many artifacts are in German; keep filenames and a brief English summary so non-German-speaking collaborators can follow.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## Contact and coordination
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+For team coordination, use the project issue tracker or the group chat used by the course. Put single-line summaries in issues and link related diagrams or requirement documents.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+## Quick TODO for maintainers
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+- [ ] Finalise requirements in `Anforderungsanalyse/`
+- [ ] Add `CONTRIBUTING.md` and `LICENSE`
+- [ ] Create `docs/` with architecture sketch
+- [ ] Decide target implementation stack and create `src/` skeleton
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+---
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+If you'd like, I can also:
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+- produce a ready-to-commit `CONTRIBUTING.md` and `LICENSE` draft
+- convert any hand-drawn diagrams into SVG/PlantUML files
+- scaffold a minimal `src/` skeleton in a language of your choice
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Tell me which of the above you'd like next.
