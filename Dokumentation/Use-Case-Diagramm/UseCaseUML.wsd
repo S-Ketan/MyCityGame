@@ -1,0 +1,41 @@
+@startuml
+
+scale 2
+left to right direction
+skinparam PackageStyle rect
+skinparam actorStyle awesome
+
+package Player {
+    actor "Player 1" as p1
+    actor "Player 2" as p2
+}
+
+actor "Administrator" as a
+
+rectangle MyCity_Desktop {
+    usecase "Spiel starten" as uc1
+    usecase "Kapitel wählen" as uc2
+    usecase "Plättchen ziehen" as uc3
+    usecase "Plättchen platzieren" as uc4
+    usecase "Regelprüfung" as uc5
+    usecase "Punkte berechnen" as uc6
+    usecase "Kapitel abschließen" as uc7
+    usecase "Spielstand speichern" as uc8
+    usecase "Spielstand laden" as uc9
+    usecase "Kapitel konfigurieren" as uc10
+
+    (uc1) .> (uc2) : include
+    (uc4) .> (uc5) : include
+    (uc4) .> (uc6) : include
+    (uc7) .> (uc8) : include
+}
+
+a --> uc10
+Player --> uc1
+Player --> uc2
+Player --> uc3
+Player --> uc4
+Player --> uc8
+Player --> uc9
+
+@enduml
