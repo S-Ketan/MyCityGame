@@ -1,0 +1,70 @@
+@startuml
+|System|
+start
+:Spiel initialisieren;
+:Kapitelkonfiguration laden;
+:Boards, Plättchen und Punktestände erzeugen;
+
+if (Neues Spiel starten?) then (nein)
+  :Kapitel wählen;
+  :Neue Regeln oder Sticker anwenden;
+endif
+
+' ==== Spieler 1 Phase ====
+|Spieler 1|
+:Baue Stadt mit aktuellem Plättchendeck;
+repeat
+  :Nächstes Plättchen aufdecken;
+  if (Kann Plättchen gelegt werden?) then (ja)
+    :Plättchen auf Stadtplan legen;
+    |System|
+    :Regelprüfung durchführen;
+    :Punkte aktualisieren;
+    |Spieler 1|
+  else (nein)
+    :Plättchen überspringen und 1 Punkt abziehen;
+  endif
+repeat while (Weitere Plättchen verfügbar?)
+
+|System|
+:Kapitelende Spieler 1;
+:Punkte von Spieler 1 berechnen;
+:Zwischenergebnis speichern;
+
+' ==== Spieler 2 Phase ====
+|Spieler 2|
+:Baue Stadt mit identischem Plättchendeck;
+repeat
+  :Nächstes Plättchen aufdecken;
+  if (Kann Plättchen gelegt werden?) then (ja)
+    :Plättchen auf Stadtplan legen;
+    |System|
+    :Regelprüfung durchführen;
+    :Punkte aktualisieren;
+    |Spieler 2|
+  else (nein)
+    :Plättchen überspringen und 1 Punkt abziehen;
+  endif
+repeat while (Weitere Plättchen verfügbar?)
+
+|System|
+:Kapitelende Spieler 2;
+:Punkte von Spieler 2 berechnen;
+
+:Gesamtergebnis berechnen;
+:Spieler 1 vs. Spieler 2 vergleichen;
+:Kapitelpunkte aktualisieren;
+
+if (Kampagne abgeschlossen?) then (ja)
+  :Endergebnis und Gewinner anzeigen;
+  stop
+else (nein)
+  :Spiel speichern oder nächstes Kapitel laden?;
+  if (Speichern gewählt?) then (ja)
+    :Spielstand speichern;
+  else (nein)
+    :Nächstes Kapitel laden;
+  endif
+  -> repeat
+endif
+@enduml
