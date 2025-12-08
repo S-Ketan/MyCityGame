@@ -1,0 +1,12 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = true
+	ignorecase = true
+	precomposeunicode = true
+[remote "origin"]
+	url = https://gitlab.hof-university.de/s-sys-e/my-city.git
+	tagOpt = --no-tags
+	fetch = +refs/*:refs/*
+	mirror = true
+	pushurl = https://github.com/NirochiCode/myCity.git

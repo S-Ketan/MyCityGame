@@ -101,7 +101,7 @@ public class GameScreen implements Screen {
             case WIESE:
                 return Color.GREEN;
             case BAUM:
-                return Color.FOREST;
+                return Color.OLIVE;
             case FELS:
                 return Color.GRAY;
             case GEBIRGE:

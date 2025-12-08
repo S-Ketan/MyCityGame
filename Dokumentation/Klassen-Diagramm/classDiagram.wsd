@@ -1,0 +1,144 @@
+@startuml
+title My City – überarbeitetes Klassendiagramm (Mounir und Ketan)
+
+' ==============================
+' Klassen
+' ==============================
+
+class Spiel {
+  - aktuellesKapitel : Kapitel
+  - spieler : Spieler[2]
+  - spielstand : Spielstand
+  + neuesSpielStarten()
+  + kapitelLaden(n : int)
+  + kapitelSpielen()
+  + endpunkteBerechnen()
+  + spielstandSpeichern()
+  + spielstandLaden()
+}
+
+class Spieler {
+  - name : String
+  - punktzahl : int
+  - stadtplan : Stadtplan
+  + kannLegen(plättchen : Plättchen, pos : Position) : boolean
+  + plättchenLegen(plättchen : Plättchen, pos : Position)
+  + plättchenDrehen(plättchen : Plättchen)
+  + plättchenÜberspringen()
+}
+
+class Stadtplan {
+  - raster : Feld[11][11]
+  - sticker : List<Sticker>
+  + plättchenPlatzieren(plättchen : Plättchen, pos : Position)
+  + getFeld(x : int, y : int) : Feld
+  + bäumeZählen() : int
+  + felsenZählen() : int
+}
+
+class Feld {
+  - gelände : Geländetyp
+  - belegt : boolean
+  + flussOben : boolean
+  + flussUnten : boolean
+  + flussLinks : boolean
+  + flussRechts : boolean
+}
+
+enum Geländetyp {
+  WIESE
+  BAUM
+  FELS
+  FLUSS
+  GEBIRGE
+  WALD
+}
+
+class Plättchen {
+  - id : int
+  - form : boolean[][]
+  - rotation : int
+  + drehen()
+}
+
+class Gebäudekarte {
+  - plättchen : Plättchen
+}
+
+class PlättchenDeck {
+  - karten : List<Gebäudekarte> <<24 Karten>>
+  + mischen()
+  + zieheKarte() : Gebäudekarte
+}
+
+class PlatzierungsRegel {
+  + prüfen(plättchen : Plättchen, stadtplan : Stadtplan, pos : Position, erstes : boolean) : boolean
+  - regelErstesGebäude()
+  - regelAnlegenAnGebäude()
+  - regelKeineÜberbauung()
+  - regelNichtAufFluss()
+  - regelNichtAufMarkiertenBereich()
+}
+
+class KapitelBonus {
+  + berechneBonus(stadtplan : Stadtplan) : int
+}
+
+class Sticker {
+  - typ : StickerTyp
+  - pos : Position
+  - effektBeschreibung : String
+}
+
+enum StickerTyp {
+  FELS_HINZUFÜGEN
+  BAUM_HINZUFÜGEN
+  BONUSFELD
+  STRUKTURSTICKER
+}
+
+class Kapitel {
+  - id : int
+  - deck : PlättchenDeck
+  - regeln : PlatzierungsRegel
+  - bonus : KapitelBonus
+  - stickerVorgaben : List<Sticker>
+}
+
+class Spielstand {
+  - kapitelNummer : int
+  - spieler1 : Spielerstand
+  - spieler2 : Spielerstand
+}
+
+class Spielerstand {
+  - stadtplan : Stadtplan
+  - punktzahl : int
+}
+
+' ==============================
+' Assoziationen
+' ==============================
+
+Spiel "1" o-- "2" Spieler : enthält >
+Spiel "1" *-- "1" Kapitel : aktuellesKapitel >
+Spiel "1" o-- "1" Spielstand : speichert >
+
+Kapitel "1" *-- "1" PlättchenDeck : besitzt >
+Kapitel "1" *-- "1" PlatzierungsRegel : regeln >
+Kapitel "1" o-- "1" KapitelBonus : bonus >
+Kapitel "1" o-- "*" Sticker : Sticker-Vorgaben >
+
+PlättchenDeck "1" *-- "24" Gebäudekarte : Karten >
+Gebäudekarte "1" --> "1" Plättchen
+
+Spieler "1" *-- "1" Stadtplan : spielt auf >
+
+Stadtplan "1" *-- "121" Feld : besteht aus >
+Stadtplan "1" o-- "*" Sticker : hat aufgeklebt >
+
+Feld "1" o-- "*" Sticker : überklebt >
+
+Spielstand "1" *-- "2" Spielerstand
+
+@enduml
