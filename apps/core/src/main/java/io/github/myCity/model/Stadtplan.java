@@ -20,27 +20,143 @@ public class Stadtplan {
         }
         this.sticker = new ArrayList<>();
         initialisiereFluss();
+        initialisiereGebirgeUndWald();
+        initialisiereBäumeUndFelsen();
+    }
+
+    private void initialisiereGebirgeUndWald() {
+        // Beispiel für Gebirge
+        raster[4][0].setGelände(Geländetyp.GEBIRGE);
+        raster[5][0].setGelände(Geländetyp.GEBIRGE);
+        raster[6][0].setGelände(Geländetyp.GEBIRGE);
+        raster[6][1].setGelände(Geländetyp.GEBIRGE);
+        raster[7][0].setGelände(Geländetyp.GEBIRGE);
+        raster[8][0].setGelände(Geländetyp.GEBIRGE);
+
+        // Beispiel für Wald
+        raster[8][10].setGelände(Geländetyp.WALD);
+        raster[9][10].setGelände(Geländetyp.WALD);
+        raster[0][10].setGelände(Geländetyp.WALD);
+        raster[1][10].setGelände(Geländetyp.WALD);
+        raster[2][10].setGelände(Geländetyp.WALD);
+        raster[3][10].setGelände(Geländetyp.WALD);
+        raster[4][10].setGelände(Geländetyp.WALD);
+        raster[5][10].setGelände(Geländetyp.WALD);
+        raster[6][10].setGelände(Geländetyp.WALD);
+        raster[0][9].setGelände(Geländetyp.WALD);
+        raster[1][9].setGelände(Geländetyp.WALD);
+        raster[2][9].setGelände(Geländetyp.WALD);
+        raster[3][9].setGelände(Geländetyp.WALD);
+        raster[4][9].setGelände(Geländetyp.WALD);
+        raster[5][9].setGelände(Geländetyp.WALD);
+        raster[6][9].setGelände(Geländetyp.WALD);
+        raster[0][8].setGelände(Geländetyp.WALD);
+        raster[1][8].setGelände(Geländetyp.WALD);
+        raster[4][8].setGelände(Geländetyp.WALD);
+        raster[0][7].setGelände(Geländetyp.WALD);
+    }
+
+    private void initialisiereBäumeUndFelsen() {
+        //Bäume
+        raster[3][2].setGelände(Geländetyp.BAUM);
+        raster[10][2].setGelände(Geländetyp.BAUM);
+        raster[2][6].setGelände(Geländetyp.BAUM);
+        raster[7][6].setGelände(Geländetyp.BAUM);
+        raster[9][8].setGelände(Geländetyp.BAUM);
+
+
+        //Felsen
+        raster[1][0].setGelände(Geländetyp.FELS);
+        raster[5][1].setGelände(Geländetyp.FELS);
+        raster[9][0].setGelände(Geländetyp.FELS);
+        raster[0][6].setGelände(Geländetyp.FELS);
+        raster[2][8].setGelände(Geländetyp.FELS);
+        raster[5][8].setGelände(Geländetyp.FELS);
+        raster[7][10].setGelände(Geländetyp.FELS);
+        raster[10][10].setGelände(Geländetyp.FELS);
     }
 
     /**
-     * Initialisiert den Fluss auf dem Stadtplan.
-     * Dies ist eine Beispielimplementierung. Die genaue Position des Flusses
-     * sollte gemäss den Spielregeln erfolgen.
+     * Initialisiert den Fluss auf dem Stadtplan gemäß den exakten Koordinaten.
+     * Der Fluss verläuft entlang der RÄNDER der Felder, nicht in den Feldern selbst.
      */
     private void initialisiereFluss() {
-        // Beispiel: Ein vertikaler Fluss in der Mitte
-        for (int i = 0; i < 11; i++) {
-            raster[i][5].setGelände(Geländetyp.FLUSS);
-            raster[i][5].flussLinks = false;
-            raster[i][5].flussRechts = false;
+        // Fluss-Koordinaten genau wie vorgegeben
+        raster[0][2].flussLinks = true;
+        raster[0][2].flussRechts = false;
+        raster[0][2].flussOben = true;
+        raster[0][2].flussUnten = false;
 
-            if (i > 0) {
-                 raster[i][5].flussOben = true;
-                 raster[i-1][5].flussUnten = true;
-            }
-        }
+        raster[1][2].flussLinks = false;
+        raster[1][2].flussRechts = true;
+        raster[1][2].flussOben = false;
+        raster[1][2].flussUnten = true;
+
+        raster[1][3].flussLinks = true;
+        raster[1][3].flussRechts = false;
+        raster[1][3].flussOben = true;
+        raster[1][3].flussUnten = false;
+
+        raster[2][3].flussLinks = false;
+        raster[2][3].flussRechts = true;
+        raster[2][3].flussOben = false;
+        raster[2][3].flussUnten = true;
+
+        raster[2][4].flussLinks = true;
+        raster[2][4].flussRechts = false;
+        raster[2][4].flussOben = true;
+        raster[2][4].flussUnten = false;
+
+        raster[3][4].flussLinks = false;
+        raster[3][4].flussRechts = true;
+        raster[3][4].flussOben = false;
+        raster[3][4].flussUnten = true;
+
+        raster[4][4].flussLinks = false;
+        raster[4][4].flussRechts = true;
+        raster[4][4].flussOben = false;
+        raster[4][4].flussUnten = false;
+
+        raster[5][4].flussLinks = false;
+        raster[5][4].flussRechts = true;
+        raster[5][4].flussOben = true;
+        raster[5][4].flussUnten = false;
+
+        raster[5][3].flussLinks = false;
+        raster[5][3].flussRechts = false;
+        raster[5][3].flussOben = true;
+        raster[5][3].flussUnten = false;
+
+        raster[6][3].flussLinks = true;
+        raster[6][3].flussRechts = false;
+        raster[6][3].flussOben = true;
+        raster[6][3].flussUnten = true;
+
+        raster[7][3].flussLinks = false;
+        raster[7][3].flussRechts = true;
+        raster[7][3].flussOben = false;
+        raster[7][3].flussUnten = true;
+
+        raster[8][3].flussLinks = false;
+        raster[8][3].flussRechts = true;
+        raster[8][3].flussOben = false;
+        raster[8][3].flussUnten = false;
+
+        raster[8][4].flussLinks = true;
+        raster[8][4].flussRechts = false;
+        raster[8][4].flussOben = true;
+        raster[8][4].flussUnten = false;
+
+        raster[9][4].flussLinks = false;
+        raster[9][4].flussRechts = true;
+        raster[9][4].flussOben = false;
+        raster[9][4].flussUnten = true;
+
+        raster[10][4].flussLinks = false;
+        raster[10][4].flussRechts = true;
+        raster[10][4].flussOben = false;
+        raster[10][4].flussUnten = false;
     }
-
 
     /**
      * Platziert ein Plättchen auf dem Stadtplan an der gegebenen Position.
@@ -76,7 +192,7 @@ public class Stadtplan {
         for (int i = 0; i < 11; i++) {
             for (int j = 0; j < 11; j++) {
                 if (raster[i][j].getGelände() == Geländetyp.BAUM && !raster[i][j].istBelegt()) {
-                    anzahl+=2;
+                    anzahl += 2;
                 }
             }
         }
@@ -88,7 +204,7 @@ public class Stadtplan {
         for (int i = 0; i < 11; i++) {
             for (int j = 0; j < 11; j++) {
                 if (raster[i][j].getGelände() == Geländetyp.FELS && !raster[i][j].istBelegt()) {
-                    anzahl-=2;
+                    anzahl -= 2;
                 }
             }
         }
@@ -97,7 +213,6 @@ public class Stadtplan {
 
     public void addSticker(Sticker newSticker) {
         this.sticker.add(newSticker);
-        // Optional: Logik, um den Sticker-Effekt direkt anzuwenden
         Position pos = newSticker.getPos();
         Feld feld = getFeld(pos.getX(), pos.getY());
         if (feld != null) {
@@ -109,7 +224,6 @@ public class Stadtplan {
                 case BAUM_HINZUFÜGEN:
                     feld.setGelände(Geländetyp.BAUM);
                     break;
-                // Andere Sticker-Typen hier behandeln
             }
         }
     }
