@@ -5,6 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -28,6 +29,7 @@ public class GameScreen implements Screen {
     private final Viewport viewport;
     private final Spiel spiel;
     private Gebäudekarte currentCard;
+    private final GlyphLayout glyphLayout = new GlyphLayout();
 
     public GameScreen(Main game, String player1Name, String player2Name) {
         this.game = game;
@@ -61,9 +63,18 @@ public class GameScreen implements Screen {
         game.batch.begin();
         Spieler currentPlayer = spiel.getCurrentPlayer();
         game.font.setColor(Color.WHITE);
-        game.font.getData().setScale(1.5f); // Make font a bit larger
-        game.font.draw(game.batch, "Current Player: " + currentPlayer.getName(), 50, viewport.getWorldHeight() - 20);
-        game.font.draw(game.batch, "Score: " + currentPlayer.getPunktzahl(), 50, viewport.getWorldHeight() - 50);
+        game.font.getData().setScale(1.0f); // Reset scale to default for layout calculation
+
+        String playerText = "Current Player: " + currentPlayer.getName();
+        glyphLayout.setText(game.font, playerText);
+        float playerX = viewport.getWorldWidth() - glyphLayout.width - 20;
+        game.font.draw(game.batch, glyphLayout, playerX, viewport.getWorldHeight() - 20);
+        
+        String scoreText = "Score: " + currentPlayer.getPunktzahl();
+        glyphLayout.setText(game.font, scoreText);
+        float scoreX = viewport.getWorldWidth() - glyphLayout.width - 20;
+        game.font.draw(game.batch, glyphLayout, scoreX, viewport.getWorldHeight() - 50);
+
         game.batch.end();
     }
 
@@ -128,20 +139,6 @@ public class GameScreen implements Screen {
         // --- Draw the deck ---
         float gridEndX = 50 + GRID_WORLD_SIZE;
         float rightAreaWidth = viewport.getWorldWidth() - gridEndX;
-        float deckWidth = TILE_SIZE * 2;
-        float deckHeight = TILE_SIZE * 3;
-        float deckX = gridEndX + (rightAreaWidth - deckWidth) / 4f;
-        float deckY = (viewport.getWorldHeight() - deckHeight) / 2f;
-
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        game.shapeRenderer.setColor(Color.BROWN);
-        game.shapeRenderer.rect(deckX, deckY, deckWidth, deckHeight);
-        game.shapeRenderer.end();
-
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        game.shapeRenderer.setColor(Color.BLACK);
-        game.shapeRenderer.rect(deckX, deckY, deckWidth, deckHeight);
-        game.shapeRenderer.end();
 
 
         // --- Draw the current Plättchen ---
