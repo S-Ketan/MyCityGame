@@ -8,11 +8,14 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-
 import io.github.myCity.Main;
-
 import io.github.myCity.model.Feld;
+import io.github.myCity.model.Gebäudekarte;
 import io.github.myCity.model.Geländetyp;
+import io.github.myCity.model.Kapitel;
+import io.github.myCity.model.Plättchen;
+import io.github.myCity.model.Spiel;
+import io.github.myCity.model.Spieler;
 import io.github.myCity.model.Stadtplan;
 
 public class GameScreen implements Screen {
@@ -23,18 +26,23 @@ public class GameScreen implements Screen {
 
     private final OrthographicCamera camera;
     private final Viewport viewport;
-    private final Stadtplan stadtplan;
+    private final Spiel spiel;
+    private Gebäudekarte currentCard;
 
-    public GameScreen(Main game) {
+    public GameScreen(Main game, String player1Name, String player2Name) {
         this.game = game;
-        this.stadtplan = new Stadtplan();
+        this.spiel = new Spiel();
+        this.spiel.neuesSpielStarten(player1Name, player2Name);
+        this.currentCard = spiel.getAktuellesKapitel().zieheKarte();
+
         camera = new OrthographicCamera();
         // We want the grid to be visible, so we make the viewport a bit larger than the grid
-        viewport = new FitViewport(GRID_WORLD_SIZE + 100, GRID_WORLD_SIZE + 100, camera);
+        viewport = new FitViewport(GRID_WORLD_SIZE + 300, GRID_WORLD_SIZE + 100, camera);
     }
 
     @Override
-    public void show() { }
+    public void show() {
+    }
 
     @Override
     public void render(float delta) {
@@ -45,11 +53,22 @@ public class GameScreen implements Screen {
         camera.update();
         game.shapeRenderer.setProjectionMatrix(camera.combined);
 
-        drawGrid();
+        drawGrid(spiel.getCurrentPlayer().getStadtplan());
+        drawDeckAndCurrentCard(spiel.getAktuellesKapitel(), currentCard);
+
+        // Draw current player info
+        game.batch.setProjectionMatrix(camera.combined);
+        game.batch.begin();
+        Spieler currentPlayer = spiel.getCurrentPlayer();
+        game.font.setColor(Color.WHITE);
+        game.font.getData().setScale(1.5f); // Make font a bit larger
+        game.font.draw(game.batch, "Current Player: " + currentPlayer.getName(), 50, viewport.getWorldHeight() - 20);
+        game.font.draw(game.batch, "Score: " + currentPlayer.getPunktzahl(), 50, viewport.getWorldHeight() - 50);
+        game.batch.end();
     }
 
-    private void drawGrid() {
-        float startX = (viewport.getWorldWidth() - GRID_WORLD_SIZE) / 2f;
+    private void drawGrid(Stadtplan stadtplan) {
+        float startX = 50; // Keep some padding from the left edge
         float startY = (viewport.getWorldHeight() - GRID_WORLD_SIZE) / 2f;
 
         // 1. Draw base terrain
@@ -96,12 +115,72 @@ public class GameScreen implements Screen {
         game.shapeRenderer.end();
     }
 
+    private void drawDeckAndCurrentCard(Kapitel kapitel, Gebäudekarte currentCard) {
+        if (currentCard == null) {
+            return; // No card to draw
+        }
+
+        Plättchen plättchen = currentCard.getPlättchen();
+        if (plättchen == null) {
+            return; // No plättchen on the card
+        }
+
+        // --- Draw the deck ---
+        float gridEndX = 50 + GRID_WORLD_SIZE;
+        float rightAreaWidth = viewport.getWorldWidth() - gridEndX;
+        float deckWidth = TILE_SIZE * 2;
+        float deckHeight = TILE_SIZE * 3;
+        float deckX = gridEndX + (rightAreaWidth - deckWidth) / 4f;
+        float deckY = (viewport.getWorldHeight() - deckHeight) / 2f;
+
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        game.shapeRenderer.setColor(Color.BROWN);
+        game.shapeRenderer.rect(deckX, deckY, deckWidth, deckHeight);
+        game.shapeRenderer.end();
+
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        game.shapeRenderer.setColor(Color.BLACK);
+        game.shapeRenderer.rect(deckX, deckY, deckWidth, deckHeight);
+        game.shapeRenderer.end();
+
+
+        // --- Draw the current Plättchen ---
+        float plättchenWidth = plättchen.getBreite() * TILE_SIZE;
+        float startX = gridEndX + (rightAreaWidth - plättchenWidth) * 0.75f;
+        float startY = (viewport.getWorldHeight() - (plättchen.getHöhe() * TILE_SIZE)) / 2f;
+
+        boolean[][] form = plättchen.getForm();
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        game.shapeRenderer.setColor(Color.ORANGE);
+        for (int i = 0; i < form.length; i++) {
+            for (int j = 0; j < form[i].length; j++) {
+                if (form[i][j]) {
+                    game.shapeRenderer.rect(startX + j * TILE_SIZE, startY + (form.length - 1 - i) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                }
+            }
+        }
+        game.shapeRenderer.end();
+
+        // Draw borders for the Plättchen
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        game.shapeRenderer.setColor(Color.BLACK);
+        for (int i = 0; i < form.length; i++) {
+            for (int j = 0; j < form[i].length; j++) {
+                if (form[i][j]) {
+                    game.shapeRenderer.rect(startX + j * TILE_SIZE, startY + (form.length - 1 - i) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                }
+            }
+        }
+        game.shapeRenderer.end();
+    }
+
+
     private Color getColorForGeländetyp(Geländetyp typ) {
         switch (typ) {
             case WIESE:
                 return Color.GREEN;
             case BAUM:
-                return Color.OLIVE;
+                return Color.FOREST;
             case FELS:
                 return Color.GRAY;
             case GEBIRGE:
@@ -120,14 +199,18 @@ public class GameScreen implements Screen {
     }
 
     @Override
-    public void pause() { }
+    public void pause() {
+    }
 
     @Override
-    public void resume() { }
+    public void resume() {
+    }
 
     @Override
-    public void hide() { }
+    public void hide() {
+    }
 
     @Override
-    public void dispose() { }
+    public void dispose() {
+    }
 }
