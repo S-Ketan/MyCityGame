@@ -167,13 +167,16 @@ public class Stadtplan {
      */
     public void plättchenPlatzieren(Plättchen plättchen, Position pos) {
         boolean[][] form = plättchen.getForm();
+        BuildingColor color = plättchen.getColor();
         for (int i = 0; i < form.length; i++) {
             for (int j = 0; j < form[i].length; j++) {
                 if (form[i][j]) {
                     int weltX = pos.getX() + j;
                     int weltY = pos.getY() + i;
                     if (weltX >= 0 && weltX < 11 && weltY >= 0 && weltY < 11) {
-                        getFeld(weltX, weltY).setBelegt(true);
+                        Feld feld = getFeld(weltX, weltY);
+                        feld.setBelegt(true);
+                        feld.setColor(color); 
                     }
                 }
             }

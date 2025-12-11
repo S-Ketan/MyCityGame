@@ -11,16 +11,26 @@ public class Spiel {
      * The current episode being played (1-24).
      */
     private Kapitel aktuellesKapitel;
-
     private final Spieler[] spieler;
-
     private Spielstand spielstand;
-
     private int aktuellerSpielerIndex;
-
     private int aktuellesKapitelNummer;
-
     private boolean erstesTile;
+    /**
+     * Mine depth for episodes 16-18.
+     * Gold nuggets collected in mine (episode 18).
+     * Tracks how deep into the mine the player has progressed.
+     */
+    private int mineDepthPlayer1 = 0;
+    private int mineDepthPlayer2 = 0;
+    private int goldNuggetsPlayer1 = 0;
+    private int goldNuggetsPlayer2 = 0;
+    /**
+     * Palace size tracking for episodes 22-23.
+     * Counts number of palace tiles placed.
+     */
+    private int palaceSizePlayer1 = 0;
+    private int palaceSizePlayer2 = 0;
 
     // ========== CONSTRUCTOR ==========
 
@@ -249,6 +259,14 @@ public class Spiel {
     }
 
     // ========== SAVE/LOAD ==========
+    public void resetEpisodeTracking() {
+        mineDepthPlayer1 = 0;
+        mineDepthPlayer2 = 0;
+        palaceSizePlayer1 = 0;
+        palaceSizePlayer2 = 0;
+        goldNuggetsPlayer1 = 0;
+        goldNuggetsPlayer2 = 0;
+    }
 
     public void spielstandSpeichern() {
         // Create Spielerstand snapshots from current Spieler objects
@@ -367,6 +385,29 @@ public class Spiel {
         return stickers;
     }
 
+    public void incrementMineDepth(int playerIndex) {
+        if (playerIndex == 0) {
+            mineDepthPlayer1++;
+        } else {
+            mineDepthPlayer2++;
+        }
+    }
+
+    public void addGoldNugget(int playerIndex) {
+        if (playerIndex == 0) {
+            goldNuggetsPlayer1++;
+        } else {
+            goldNuggetsPlayer2++;
+        }
+    }
+
+    public void incrementPalaceSize(int playerIndex) {
+        if (playerIndex == 0) {
+            palaceSizePlayer1++;
+        } else {
+            palaceSizePlayer2++;
+        }
+    }
     // ========== GETTERS ==========
 
     public Kapitel getAktuellesKapitel() {
@@ -391,5 +432,17 @@ public class Spiel {
 
     public Spielstand getSpielstand() {
         return spielstand;
+    }
+
+    public int getMineDepth(int playerIndex) {
+        return (playerIndex == 0) ? mineDepthPlayer1 : mineDepthPlayer2;
+    }
+
+    public int getGoldNuggets(int playerIndex) {
+        return (playerIndex == 0) ? goldNuggetsPlayer1 : goldNuggetsPlayer2;
+    }
+
+    public int getPalaceSize(int playerIndex) {
+        return (playerIndex == 0) ? palaceSizePlayer1 : palaceSizePlayer2;
     }
 }

@@ -2,8 +2,6 @@ package io.github.myCity.model;
 
 import java.util.List;
 
-import io.github.myCity.model.PlatzierungsRegel;
-
 public class Kapitel {
     private final int id;
     private final PlättchenDeck deck;
@@ -40,7 +38,7 @@ public class Kapitel {
         return stickerVorgaben;
     }
 
-    public Gebäudekarte zieheKarte() {
+    public Gebäudekarte zieheKarte() {   
         return deck.zieheKarte();
     }
 
@@ -58,7 +56,11 @@ public class Kapitel {
     }
 
     public int berechneBonus(Stadtplan stadtplan) {
-        return bonus.berechneBonusStadtplan(stadtplan);
+        return bonus.berechneBonusStadtplan(stadtplan, null, 0);
+    }
+
+    public int berechneBonus(Stadtplan stadtplan, Spiel spiel, int playerIndex) {
+        return bonus.berechneBonusStadtplan(stadtplan, spiel, playerIndex);
     }
 
     public void applyStickerVorgaben(Stadtplan stadtplan) {
