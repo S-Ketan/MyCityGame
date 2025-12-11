@@ -14,11 +14,13 @@ public class Feld {
     public boolean flussUnten;
     public boolean flussLinks;
     public boolean flussRechts;
+    private BuildingColor color;
     private final List<Sticker> stickers = new ArrayList<>();
 
     public Feld(Geländetyp gelände) {
         this.gelände = gelände;
         this.belegt = false;
+        this.color = BuildingColor.NONE;
     }
 
     public Geländetyp getGelände() {
@@ -35,6 +37,14 @@ public class Feld {
 
     public void setBelegt(boolean belegt) {
         this.belegt = belegt;
+    }
+
+    public BuildingColor getColor() {
+        return color;
+    }
+
+    public void setColor(BuildingColor color) {
+        this.color = color;
     }
 
     public boolean hatFluss() {
