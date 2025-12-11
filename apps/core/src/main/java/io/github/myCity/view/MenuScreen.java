@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -24,6 +25,7 @@ public class MenuScreen implements Screen {
     private final Main game;
     private final OrthographicCamera camera;
     private final Viewport viewport;
+    private final Vector3 touchPoint; // This is no longer directly used for UI, but might be for other interactions
 
     private static final float VIRTUAL_WIDTH = 800;
     private static final float VIRTUAL_HEIGHT = 600;
@@ -42,6 +44,7 @@ public class MenuScreen implements Screen {
         this.game = game;
         camera = new OrthographicCamera();
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
+        touchPoint = new Vector3();
     }
 
     @Override

@@ -7,8 +7,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+
 import io.github.myCity.Main;
 import io.github.myCity.model.Feld;
 import io.github.myCity.model.Gebäudekarte;
@@ -30,6 +32,7 @@ public class GameScreen implements Screen {
     private final Spiel spiel;
     private Gebäudekarte currentCard;
     private final GlyphLayout glyphLayout = new GlyphLayout();
+    private final Rectangle skipButton;
 
     public GameScreen(Main game, String player1Name, String player2Name) {
         this.game = game;
@@ -40,10 +43,14 @@ public class GameScreen implements Screen {
         camera = new OrthographicCamera();
         // We want the grid to be visible, so we make the viewport a bit larger than the grid
         viewport = new FitViewport(GRID_WORLD_SIZE + 300, GRID_WORLD_SIZE + 100, camera);
+
+        // Initialize skip button (position will be finalized in resize())
+        skipButton = new Rectangle(0, 0, 140, 40);
     }
 
     @Override
     public void show() {
+         Gdx.input.setInputProcessor(null);
     }
 
     @Override
@@ -58,7 +65,10 @@ public class GameScreen implements Screen {
         drawGrid(spiel.getCurrentPlayer().getStadtplan());
         drawDeckAndCurrentCard(spiel.getAktuellesKapitel(), currentCard);
 
-        // Draw current player info
+        // Handle input: skip tile when button is clicked
+        handleSkipInput();
+
+        // Draw current player info and UI elements
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
         Spieler currentPlayer = spiel.getCurrentPlayer();
@@ -75,7 +85,21 @@ public class GameScreen implements Screen {
         float scoreX = viewport.getWorldWidth() - glyphLayout.width - 20;
         game.font.draw(game.batch, glyphLayout, scoreX, viewport.getWorldHeight() - 50);
 
+        // Draw Skip button label
+        game.font.setColor(Color.WHITE);
+        String skipText = "Skip Tile";
+        glyphLayout.setText(game.font, skipText);
+        float textX = skipButton.x + (skipButton.width - glyphLayout.width) / 2f;
+        float textY = skipButton.y + (skipButton.height + glyphLayout.height) / 2f;
+        game.font.draw(game.batch, glyphLayout, textX, textY);
+
         game.batch.end();
+
+        // Draw Skip button rectangle
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        game.shapeRenderer.setColor(Color.WHITE);
+        game.shapeRenderer.rect(skipButton.x, skipButton.y, skipButton.width, skipButton.height);
+        game.shapeRenderer.end();
     }
 
     private void drawGrid(Stadtplan stadtplan) {
@@ -171,6 +195,20 @@ public class GameScreen implements Screen {
         game.shapeRenderer.end();
     }
 
+    private void handleSkipInput() {
+        if (Gdx.input.isButtonJustPressed(0)) {
+            // Convert screen coordinates to world coordinates
+            float worldX = (Gdx.input.getX() / (float) Gdx.graphics.getWidth()) * viewport.getWorldWidth();
+            float worldY = viewport.getWorldHeight() - (Gdx.input.getY() / (float) Gdx.graphics.getHeight()) * viewport.getWorldHeight();
+
+            if (skipButton.contains(worldX, worldY)) {
+                // Pull next tile/card from the deck
+                currentCard = spiel.getAktuellesKapitel().zieheKarte();
+                Gdx.app.log("Game", "Skipped current tile. Drew next tile from deck.");
+            }
+        }
+    }
+
 
     private Color getColorForGeländetyp(Geländetyp typ) {
         switch (typ) {
@@ -193,6 +231,15 @@ public class GameScreen implements Screen {
     public void resize(int width, int height) {
         // Update the viewport and center the camera.
         viewport.update(width, height, true);
+
+        // Position skip button in the right UI area
+        float gridEndX = 50 + GRID_WORLD_SIZE;
+        float rightAreaWidth = viewport.getWorldWidth() - gridEndX;
+        float buttonWidth = 140;
+        float buttonHeight = 40;
+        float buttonX = gridEndX + (rightAreaWidth - buttonWidth) * 0.5f;
+        float buttonY = 30; // bottom margin
+        skipButton.set(buttonX, buttonY, buttonWidth, buttonHeight);
     }
 
     @Override
