@@ -17,12 +17,12 @@ public class FirstScreen implements Screen {
     private static final float GRID_TOTAL_WIDTH = GRID_SIZE * TILE_SIZE;
     private static final float GRID_TOTAL_HEIGHT = GRID_SIZE * TILE_SIZE;
 
-    private Rectangle newGameButton;
-    private Rectangle kapitelButton;
-    private Rectangle loadButton;
-    private Rectangle quitButton;
-    private Rectangle backButton;
-    private Rectangle[] kapitelButtons;
+    private final Rectangle newGameButton;
+    private final Rectangle kapitelButton;
+    private final Rectangle loadButton;
+    private final Rectangle quitButton;
+    private final Rectangle backButton;
+    private final Rectangle[] kapitelButtons;
 
     private enum ScreenState {
         MENU,

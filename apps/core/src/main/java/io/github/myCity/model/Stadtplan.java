@@ -227,6 +227,10 @@ public class Stadtplan {
                 case BAUM_HINZUFÜGEN:
                     feld.setGelände(Geländetyp.BAUM);
                     break;
+                case STRUKTURSTICKER:
+                case BONUSFELD:
+                    // No terrain change for these sticker types
+                    break;
             }
         }
     }

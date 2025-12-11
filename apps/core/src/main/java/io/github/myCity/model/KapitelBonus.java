@@ -400,11 +400,13 @@ public class KapitelBonus {
 
     // ========== CHAPTER 6: THE MINE ==========
 
+    @SuppressWarnings("unused")
     private int episode16(Stadtplan stadtplan, Spiel spiel, int playerIndex) {
         if (spiel == null) return 0;
         return spiel.getMineDepth(playerIndex); // +1 per depth level
     }
 
+    @SuppressWarnings("unused")
     private int episode17(Stadtplan stadtplan, Spiel spiel, int playerIndex) {
         if (spiel == null) return 0;
         int depth = spiel.getMineDepth(playerIndex);
@@ -416,6 +418,7 @@ public class KapitelBonus {
         return bonus;
     }
 
+    @SuppressWarnings("unused")
     private int episode18(Stadtplan stadtplan, Spiel spiel, int playerIndex) {
         if (spiel == null) return 0;
         return spiel.getGoldNuggets(playerIndex) * 2; // +2 per gold nugget
@@ -502,17 +505,20 @@ public class KapitelBonus {
 
     // ========== CHAPTER 8: THE PALACE ==========
 
+    @SuppressWarnings("unused")
     private int episode22(Stadtplan stadtplan, Spiel spiel, int playerIndex) {
         if (spiel == null) return 0;
         return spiel.getPalaceSize(playerIndex); // +1 per palace tile
     }
 
+    @SuppressWarnings("unused")
     private int episode23(Stadtplan stadtplan, Spiel spiel, int playerIndex) {
         if (spiel == null) return 0;
         int palaceSize = spiel.getPalaceSize(playerIndex);
         return (palaceSize >= 4) ? 5 : 0;
     }
 
+    @SuppressWarnings("unused")
     private int episode24(Stadtplan stadtplan, Spiel spiel, int playerIndex) {
         if (spiel == null) return 0;
         

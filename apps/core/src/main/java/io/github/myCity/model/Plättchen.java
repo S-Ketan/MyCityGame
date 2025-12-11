@@ -8,7 +8,7 @@ import java.util.List;
  * werden kann.
  */
 public class Plättchen {
-    private int id;
+    private final int id;
     private boolean[][] form; // true = belegt, false = leer
     private int rotation; // 0, 90, 180, 270 Grad
     private BuildingColor color;
