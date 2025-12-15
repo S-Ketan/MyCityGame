@@ -18,10 +18,10 @@ public class PlatzierungsRegel {
             return false;
         }
 
-        // Rule 2: First tile must be on building site
+        // Rule 2: First tile must be adjacent to river (using edge-based river system)
         if (erstes) {
             if (!regelErstesGebäude(plättchen, stadtplan, pos)) {
-                System.out.println("❌ Rule violation: First tile must touch river but not be on it");
+                System.out.println("❌ Rule violation: First tile must be adjacent to river");
                 return false;
             }
             // First tile doesn't need adjacency check
@@ -40,7 +40,7 @@ public class PlatzierungsRegel {
             return false;
         }
 
-        // Rule 5: Cannot build on rivers (with some exceptions)
+        // Rule 5: Cannot build on rivers (FLUSS terrain type)
         if (!regelNichtAufFluss(plättchen, stadtplan, pos)) {
             System.out.println("❌ Rule violation: Cannot build on river");
             return false;
@@ -85,13 +85,17 @@ public class PlatzierungsRegel {
     }
 
     /**
-     * Rule: First tile must TOUCH the river but NOT be placed ON the river.
+     * Rule: First tile must be ADJACENT to the river (using edge-based river system).
+     * The river is represented by edges (flussOben, flussUnten, flussLinks, flussRechts).
+     * The first tile must touch a river edge but NOT be placed ON a river field.
      */
     private boolean regelErstesGebäude(Plättchen plättchen, Stadtplan stadtplan, Position pos) {
         boolean[][] form = plättchen.getForm();
-        boolean touchesRiver = false;
+        boolean adjacentToRiver = false;
 
-        // Step 1: Check that NO part of the tile is ON the river
+        System.out.println("🔍 Checking first tile placement at position (" + pos.getX() + ", " + pos.getY() + ")");
+
+        // Check each cell of the tile
         for (int i = 0; i < form.length; i++) {
             for (int j = 0; j < form[i].length; j++) {
                 if (form[i][j]) {
@@ -99,58 +103,103 @@ public class PlatzierungsRegel {
                     int weltY = pos.getY() + i;
 
                     Feld feld = stadtplan.getFeld(weltX, weltY);
-                    if (feld != null && feld.getGelände() == Geländetyp.FLUSS) {
-                        // Tile is ON the river - not allowed!
+                    if (feld == null) {
+                        System.out.println("  ⚠️ Field at (" + weltX + ", " + weltY + ") is null!");
+                        continue;
+                    }
+
+                    System.out.println("  📍 Checking field (" + weltX + ", " + weltY + ")");
+                    System.out.println("     River edges: Top=" + feld.flussOben + ", Bottom=" + feld.flussUnten + 
+                                     ", Left=" + feld.flussLinks + ", Right=" + feld.flussRechts);
+
+                    // First tile CANNOT be on a river field itself
+                    if (feld.hatFluss()) {
+                        System.out.println("  ❌ First tile cannot be ON river field at (" + weltX + ", " + weltY + ")");
                         return false;
                     }
-                }
-            }
-        }
 
-        // Step 2: Check that AT LEAST ONE cell touches the river
-        for (int i = 0; i < form.length; i++) {
-            for (int j = 0; j < form[i].length; j++) {
-                if (form[i][j]) {
-                    int weltX = pos.getX() + j;
-                    int weltY = pos.getY() + i;
-
-                    // Check all 4 orthogonal neighbors for river
-                    if (hatFlussNachbar(stadtplan, weltX, weltY)) {
-                        touchesRiver = true;
-                        break;
+                    // Check if any neighbor has a river edge (= this cell is adjacent to river)
+                    if (hatNachbarMitFluss(stadtplan, weltX, weltY)) {
+                        adjacentToRiver = true;
+                        System.out.println("  ✓ Found adjacent river at field (" + weltX + ", " + weltY + ")");
                     }
                 }
             }
-            if (touchesRiver)
-                break;
         }
 
-        return touchesRiver; // Must touch river to be valid
-    }
+        if (!adjacentToRiver) {
+            System.out.println("❌ First tile must be adjacent to river!");
+        }
 
+        return adjacentToRiver;
+    }
+    
     /**
-     * Helper method: Checks if a position has at least one river neighbor.
+     * Helper: Checks if a position has at least one neighbor that is a river field.
      */
-    private boolean hatFlussNachbar(Stadtplan stadtplan, int x, int y) {
-        // Check 4 directions: up, down, left, right
+    private boolean hatNachbarMitFluss(Stadtplan stadtplan, int x, int y) {
+        // Check all 4 orthogonal neighbors
         int[][] offsets = {
-                { 0, -1 }, // up
-                { 0, 1 }, // down
-                { -1, 0 }, // left
-                { 1, 0 } // right
+            {0, -1},  // bottom
+            {0, 1},   // top
+            {-1, 0},  // left
+            {1, 0}    // right
         };
 
         for (int[] offset : offsets) {
             int nx = x + offset[0];
             int ny = y + offset[1];
 
-            // Check bounds
             if (nx >= 0 && nx < 11 && ny >= 0 && ny < 11) {
-                Feld feld = stadtplan.getFeld(nx, ny);
-                if (feld != null && feld.getGelände() == Geländetyp.FLUSS) {
-                    return true; // Found a river neighbor!
+                Feld nachbar = stadtplan.getFeld(nx, ny);
+                if (nachbar != null && nachbar.hatFluss()) {
+                    System.out.println("    → Neighbor (" + nx + ", " + ny + ") is a river field");
+                    return true;
                 }
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * Helper method: Checks if a position has a river edge on any of its borders.
+     * This includes checking neighboring cells for river edges that border this cell.
+     */
+    private boolean hatFlussAnGrenze(Stadtplan stadtplan, int x, int y) {
+        Feld feld = stadtplan.getFeld(x, y);
+        if (feld != null && feld.hatFluss()) {
+            System.out.println("    → Field itself has river edge");
+            return true;
+        }
+
+        // Check neighbors for river edges pointing towards this cell
+        // Check top neighbor (y+1) for flussUnten
+        Feld topNeighbor = stadtplan.getFeld(x, y + 1);
+        if (topNeighbor != null && topNeighbor.flussUnten) {
+            System.out.println("    → Top neighbor (" + x + ", " + (y+1) + ") has river on bottom edge");
+            return true;
+        }
+
+        // Check bottom neighbor (y-1) for flussOben
+        Feld bottomNeighbor = stadtplan.getFeld(x, y - 1);
+        if (bottomNeighbor != null && bottomNeighbor.flussOben) {
+            System.out.println("    → Bottom neighbor (" + x + ", " + (y-1) + ") has river on top edge");
+            return true;
+        }
+
+        // Check left neighbor (x-1) for flussRechts
+        Feld leftNeighbor = stadtplan.getFeld(x - 1, y);
+        if (leftNeighbor != null && leftNeighbor.flussRechts) {
+            System.out.println("    → Left neighbor (" + (x-1) + ", " + y + ") has river on right edge");
+            return true;
+        }
+
+        // Check right neighbor (x+1) for flussLinks
+        Feld rightNeighbor = stadtplan.getFeld(x + 1, y);
+        if (rightNeighbor != null && rightNeighbor.flussLinks) {
+            System.out.println("    → Right neighbor (" + (x+1) + ", " + y + ") has river on left edge");
+            return true;
         }
 
         return false;
@@ -210,7 +259,8 @@ public class PlatzierungsRegel {
     }
 
     /**
-     * Rule: Cannot build on certain terrain types (rocks, mountains).
+     * Rule: Cannot build on certain terrain types (mountains, forest, and river terrain).
+     * Note: FELS (rocks) and BAUM (trees) are ALLOWED - they affect scoring but not placement.
      */
     private boolean regelKeineBebauung(Plättchen plättchen, Stadtplan stadtplan, Position pos) {
         boolean[][] form = plättchen.getForm();
@@ -225,9 +275,19 @@ public class PlatzierungsRegel {
                     if (feld != null) {
                         Geländetyp terrain = feld.getGelände();
 
-                        // Cannot build on rocks or mountains
-                        if (terrain == Geländetyp.FELS || terrain == Geländetyp.GEBIRGE) {
+                        System.out.println("  📍 Field (" + weltX + ", " + weltY + ") has terrain: " + terrain);
+
+                        // Cannot build on mountains (GEBIRGE) or forest (WALD)
+                        // FELS and BAUM are allowed but affect scoring:
+                        // - Building on FELS = lose points at end
+                        // - NOT building on BAUM = gain points at end
+                        if (terrain == Geländetyp.GEBIRGE || terrain == Geländetyp.WALD) {
+                            System.out.println("  ❌ Cannot build on " + terrain + " at (" + weltX + ", " + weltY + ")");
                             return false;
+                        }
+                        
+                        if (terrain == Geländetyp.FELS || terrain == Geländetyp.BAUM) {
+                            System.out.println("  ⚠️ Building on " + terrain + " at (" + weltX + ", " + weltY + ") - will affect score");
                         }
                     }
                 }
@@ -238,7 +298,10 @@ public class PlatzierungsRegel {
     }
 
     /**
-     * Rule: Cannot build on rivers (unless allowed by specific episodes).
+     * Rule: Cannot build on rivers.
+     * In this game, rivers are represented by EDGES (flussOben, flussUnten, etc.).
+     * Fields that have ANY river edge cannot be built on (they are "river fields").
+     * Exception: First tile must be ADJACENT to river, so it can touch river edges.
      */
     private boolean regelNichtAufFluss(Plättchen plättchen, Stadtplan stadtplan, Position pos) {
         boolean[][] form = plättchen.getForm();
@@ -251,16 +314,17 @@ public class PlatzierungsRegel {
 
                     Feld feld = stadtplan.getFeld(weltX, weltY);
                     if (feld != null) {
-                        // Check if field is a river
+                        // Check if field is a river (terrain type FLUSS)
                         if (feld.getGelände() == Geländetyp.FLUSS) {
-                            return false; // Cannot build on river
+                            System.out.println("  ❌ Cannot build on FLUSS terrain at (" + weltX + ", " + weltY + ")");
+                            return false;
                         }
-
-                        // Also check if field has river borders (from Feld class)
+                        
+                        // Check if field has river edges - these fields are "river fields"
+                        // and cannot be built on
                         if (feld.hatFluss()) {
-                            // River passes through this field
-                            // Depending on episode rules, this might be forbidden
-                            // For now, we allow it (only pure FLUSS terrain is forbidden)
+                            System.out.println("  ❌ Cannot build on river field at (" + weltX + ", " + weltY + ") - has river edges");
+                            return false;
                         }
                     }
                 }
@@ -320,7 +384,7 @@ public class PlatzierungsRegel {
 
         if (erstes) {
             if (!regelErstesGebäude(plättchen, stadtplan, pos)) {
-                return "First tile must touch the river but cannot be placed on it";
+                return "First tile must be adjacent to the river";
             }
             return null; // Valid!
         }
@@ -330,7 +394,7 @@ public class PlatzierungsRegel {
         }
 
         if (!regelKeineBebauung(plättchen, stadtplan, pos)) {
-            return "Cannot build on rocks (FELS) or mountains (GEBIRGE)";
+            return "Cannot build on mountains (GEBIRGE) or forest (WALD)";
         }
 
         if (!regelNichtAufFluss(plättchen, stadtplan, pos)) {

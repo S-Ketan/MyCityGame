@@ -230,7 +230,7 @@ public class Spiel {
     /**
      * Switches to the other player.
      */
-    private void wechselSpieler() {
+    public void wechselSpieler() {
         aktuellerSpielerIndex = (aktuellerSpielerIndex + 1) % 2;
     }
 
