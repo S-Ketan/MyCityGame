@@ -94,6 +94,7 @@ public class Plättchen {
         pieces.add(new Plättchen(5, new boolean[][] { { true, false, false }, { true, true, true } }));
         pieces.add(new Plättchen(6, new boolean[][] { { true, true }, { true, true } }));
         pieces.add(new Plättchen(7, new boolean[][] { { true, true, false }, { false, true, true } }));
+        pieces.add(new Plättchen(8, new boolean[][] { {true, false, true}, {true, true, true}}));
 
         return pieces;
     }
@@ -105,7 +106,7 @@ public class Plättchen {
         List<Plättchen> plättchen = new ArrayList<>();
         List<Plättchen> basis = createBasiPlättchens();
 
-        int[] anzahl = { 4, 4, 3, 3, 3, 4, 3 }; // Gesamt: 24
+        int[] anzahl = { 2, 2, 2, 2, 2, 2, 2, 2 }; // Gesamt: 24
 
         for (int i = 0; i < basis.size(); i++) {
             Plättchen original = basis.get(i);

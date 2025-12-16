@@ -85,13 +85,15 @@ public class PlatzierungsRegel {
     }
 
     /**
-     * Rule: First tile must be ADJACENT to the river (using edge-based river system).
-     * The river is represented by edges (flussOben, flussUnten, flussLinks, flussRechts).
-     * The first tile must touch a river edge but NOT be placed ON a river field.
+     * Rule: First tile must be ADJACENT to the river.
+     * The river flows BETWEEN cells (marked by blue edges).
+     * A field with river edges (flussOben, etc.) means the river flows ALONG that edge,
+     * but the field itself is buildable!
+     * The first tile just needs to have at least one cell that has a river edge.
      */
     private boolean regelErstesGebäude(Plättchen plättchen, Stadtplan stadtplan, Position pos) {
         boolean[][] form = plättchen.getForm();
-        boolean adjacentToRiver = false;
+        boolean touchesRiver = false;
 
         System.out.println("🔍 Checking first tile placement at position (" + pos.getX() + ", " + pos.getY() + ")");
 
@@ -109,100 +111,28 @@ public class PlatzierungsRegel {
                     }
 
                     System.out.println("  📍 Checking field (" + weltX + ", " + weltY + ")");
+                    System.out.println("     Terrain: " + feld.getGelände());
                     System.out.println("     River edges: Top=" + feld.flussOben + ", Bottom=" + feld.flussUnten + 
                                      ", Left=" + feld.flussLinks + ", Right=" + feld.flussRechts);
 
-                    // First tile CANNOT be on a river field itself
+                    // If this field has any river edge, it touches the river!
                     if (feld.hatFluss()) {
-                        System.out.println("  ❌ First tile cannot be ON river field at (" + weltX + ", " + weltY + ")");
-                        return false;
-                    }
-
-                    // Check if any neighbor has a river edge (= this cell is adjacent to river)
-                    if (hatNachbarMitFluss(stadtplan, weltX, weltY)) {
-                        adjacentToRiver = true;
-                        System.out.println("  ✓ Found adjacent river at field (" + weltX + ", " + weltY + ")");
+                        touchesRiver = true;
+                        System.out.println("  ✓ This field touches the river!");
+                        break;
                     }
                 }
             }
+            if (touchesRiver) break;
         }
 
-        if (!adjacentToRiver) {
-            System.out.println("❌ First tile must be adjacent to river!");
+        if (!touchesRiver) {
+            System.out.println("❌ First tile must touch the river (have at least one river edge)!");
+        } else {
+            System.out.println("✓ First tile touches the river - placement allowed!");
         }
 
-        return adjacentToRiver;
-    }
-    
-    /**
-     * Helper: Checks if a position has at least one neighbor that is a river field.
-     */
-    private boolean hatNachbarMitFluss(Stadtplan stadtplan, int x, int y) {
-        // Check all 4 orthogonal neighbors
-        int[][] offsets = {
-            {0, -1},  // bottom
-            {0, 1},   // top
-            {-1, 0},  // left
-            {1, 0}    // right
-        };
-
-        for (int[] offset : offsets) {
-            int nx = x + offset[0];
-            int ny = y + offset[1];
-
-            if (nx >= 0 && nx < 11 && ny >= 0 && ny < 11) {
-                Feld nachbar = stadtplan.getFeld(nx, ny);
-                if (nachbar != null && nachbar.hatFluss()) {
-                    System.out.println("    → Neighbor (" + nx + ", " + ny + ") is a river field");
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Helper method: Checks if a position has a river edge on any of its borders.
-     * This includes checking neighboring cells for river edges that border this cell.
-     */
-    private boolean hatFlussAnGrenze(Stadtplan stadtplan, int x, int y) {
-        Feld feld = stadtplan.getFeld(x, y);
-        if (feld != null && feld.hatFluss()) {
-            System.out.println("    → Field itself has river edge");
-            return true;
-        }
-
-        // Check neighbors for river edges pointing towards this cell
-        // Check top neighbor (y+1) for flussUnten
-        Feld topNeighbor = stadtplan.getFeld(x, y + 1);
-        if (topNeighbor != null && topNeighbor.flussUnten) {
-            System.out.println("    → Top neighbor (" + x + ", " + (y+1) + ") has river on bottom edge");
-            return true;
-        }
-
-        // Check bottom neighbor (y-1) for flussOben
-        Feld bottomNeighbor = stadtplan.getFeld(x, y - 1);
-        if (bottomNeighbor != null && bottomNeighbor.flussOben) {
-            System.out.println("    → Bottom neighbor (" + x + ", " + (y-1) + ") has river on top edge");
-            return true;
-        }
-
-        // Check left neighbor (x-1) for flussRechts
-        Feld leftNeighbor = stadtplan.getFeld(x - 1, y);
-        if (leftNeighbor != null && leftNeighbor.flussRechts) {
-            System.out.println("    → Left neighbor (" + (x-1) + ", " + y + ") has river on right edge");
-            return true;
-        }
-
-        // Check right neighbor (x+1) for flussLinks
-        Feld rightNeighbor = stadtplan.getFeld(x + 1, y);
-        if (rightNeighbor != null && rightNeighbor.flussLinks) {
-            System.out.println("    → Right neighbor (" + (x+1) + ", " + y + ") has river on left edge");
-            return true;
-        }
-
-        return false;
+        return touchesRiver;
     }
 
     /**
@@ -298,10 +228,10 @@ public class PlatzierungsRegel {
     }
 
     /**
-     * Rule: Cannot build on rivers.
-     * In this game, rivers are represented by EDGES (flussOben, flussUnten, etc.).
-     * Fields that have ANY river edge cannot be built on (they are "river fields").
-     * Exception: First tile must be ADJACENT to river, so it can touch river edges.
+     * Rule: Cannot build on rivers (only FLUSS terrain type).
+     * Note: River EDGES (flussOben, etc.) do NOT prevent building!
+     * The river flows BETWEEN cells, not ON the cells.
+     * Only cells with actual FLUSS terrain type cannot be built on.
      */
     private boolean regelNichtAufFluss(Plättchen plättchen, Stadtplan stadtplan, Position pos) {
         boolean[][] form = plättchen.getForm();
@@ -315,16 +245,15 @@ public class PlatzierungsRegel {
                     Feld feld = stadtplan.getFeld(weltX, weltY);
                     if (feld != null) {
                         // Check if field is a river (terrain type FLUSS)
+                        // This would be a field that IS the river itself
                         if (feld.getGelände() == Geländetyp.FLUSS) {
                             System.out.println("  ❌ Cannot build on FLUSS terrain at (" + weltX + ", " + weltY + ")");
                             return false;
                         }
                         
-                        // Check if field has river edges - these fields are "river fields"
-                        // and cannot be built on
+                        // River edges are OK! The river flows along the edge, not on the field itself
                         if (feld.hatFluss()) {
-                            System.out.println("  ❌ Cannot build on river field at (" + weltX + ", " + weltY + ") - has river edges");
-                            return false;
+                            System.out.println("  ℹ️ Field (" + weltX + ", " + weltY + ") has river edge - building allowed!");
                         }
                     }
                 }
