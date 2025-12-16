@@ -10,7 +10,7 @@ class StadtplanTest {
 
     @BeforeEach
     void setUp() {
-        stadtplan = new Stadtplan();
+        stadtplan = new Stadtplan(false); // Use the new constructor for tests
     }
 
     @Test
@@ -25,8 +25,10 @@ class StadtplanTest {
 
     @Test
     void testInitialisiereFluss() {
+        Stadtplan stadtplanWithRiver = new Stadtplan(true); // Create a Stadtplan that initializes the river
+        
         // Check a point on the vertical part of the L-shaped river
-        Feld verticalRiverTile = stadtplan.getFeld(5, 6);
+        Feld verticalRiverTile = stadtplanWithRiver.getFeld(5, 6);
         assertNotNull(verticalRiverTile);
         assertTrue(verticalRiverTile.hatFluss(), "Tile at (5,6) should be part of the river.");
         assertEquals(Geländetyp.WIESE, verticalRiverTile.getGelände(), "River tiles should have WIESE as their base terrain.");
@@ -34,7 +36,7 @@ class StadtplanTest {
         assertTrue(verticalRiverTile.flussUnten);
 
         // Check the corner tile
-        Feld cornerTile = stadtplan.getFeld(5, 4);
+        Feld cornerTile = stadtplanWithRiver.getFeld(5, 4);
         assertNotNull(cornerTile);
         assertTrue(cornerTile.hatFluss(), "Tile at (5,4) should be the corner of the river.");
         assertTrue(cornerTile.flussUnten);
@@ -42,7 +44,7 @@ class StadtplanTest {
 
 
         // Check a non-river tile
-        Feld nonRiverTile = stadtplan.getFeld(0, 0);
+        Feld nonRiverTile = stadtplanWithRiver.getFeld(0, 0);
         assertNotNull(nonRiverTile);
         assertFalse(nonRiverTile.hatFluss(), "Tile at (0,0) should not be part of the river.");
         assertEquals(Geländetyp.WIESE, nonRiverTile.getGelände());

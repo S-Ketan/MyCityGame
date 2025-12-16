@@ -268,7 +268,7 @@ public class GameScreen implements Screen {
             
             // Now reload the SAME chapter for player 2
             int currentChapter = spiel.getAktuellesKapitelNummer();
-            spiel.kapitelLaden(currentChapter);
+            spiel.kapitelLaden(currentChapter, false);
             currentCard = spiel.getAktuellesKapitel().zieheKarte();
             resetTilePosition();
             
@@ -370,7 +370,7 @@ public class GameScreen implements Screen {
         spiel.resetEpisodeTracking();
         
         // Load next chapter
-        spiel.kapitelLaden(nextChapter);
+        spiel.kapitelLaden(nextChapter, true);
         currentCard = spiel.getAktuellesKapitel().zieheKarte();
         resetTilePosition();
         

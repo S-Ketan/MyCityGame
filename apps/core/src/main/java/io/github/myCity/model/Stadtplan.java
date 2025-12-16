@@ -12,6 +12,10 @@ public class Stadtplan {
     private final List<Sticker> sticker;
 
     public Stadtplan() {
+        this(true); // Calls the new constructor to maintain default behavior
+    }
+
+    public Stadtplan(boolean initializeDefaultTerrain) {
         this.raster = new Feld[11][11];
         for (int i = 0; i < 11; i++) {
             for (int j = 0; j < 11; j++) {
@@ -19,9 +23,11 @@ public class Stadtplan {
             }
         }
         this.sticker = new ArrayList<>();
-        initialisiereFluss();
-        initialisiereGebirgeUndWald();
-        initialisiereBäumeUndFelsen();
+        if (initializeDefaultTerrain) {
+            initialisiereFluss();
+            initialisiereGebirgeUndWald();
+            initialisiereBäumeUndFelsen();
+        }
     }
 
     private void initialisiereGebirgeUndWald() {
@@ -87,6 +93,11 @@ public class Stadtplan {
         raster[0][2].flussOben = true;
         raster[0][2].flussUnten = false;
 
+        raster[0][1].flussLinks = false;
+        raster[0][1].flussRechts = true;
+        raster[0][1].flussOben = false;
+        raster[0][1].flussUnten = false;
+
         raster[1][2].flussLinks = false;
         raster[1][2].flussRechts = true;
         raster[1][2].flussOben = false;
@@ -112,15 +123,35 @@ public class Stadtplan {
         raster[3][4].flussOben = false;
         raster[3][4].flussUnten = true;
 
+        raster[3][5].flussLinks = true;
+        raster[3][5].flussRechts = false;
+        raster[3][5].flussOben = false;
+        raster[3][5].flussUnten = false;
+
         raster[4][4].flussLinks = false;
         raster[4][4].flussRechts = true;
         raster[4][4].flussOben = false;
         raster[4][4].flussUnten = false;
 
+        raster[4][5].flussLinks = true;
+        raster[4][5].flussRechts = false;
+        raster[4][5].flussOben = false;
+        raster[4][5].flussUnten = false;
+
+        raster[4][6].flussLinks = false;
+        raster[4][6].flussRechts = false;
+        raster[4][6].flussOben = false;
+        raster[4][6].flussUnten = true;
+
         raster[5][4].flussLinks = false;
         raster[5][4].flussRechts = true;
         raster[5][4].flussOben = true;
         raster[5][4].flussUnten = false;
+
+        raster[5][5].flussLinks = true;
+        raster[5][5].flussRechts = false;
+        raster[5][5].flussOben = false;
+        raster[5][5].flussUnten = false;
 
         raster[5][3].flussLinks = false;
         raster[5][3].flussRechts = false;
@@ -132,10 +163,20 @@ public class Stadtplan {
         raster[6][3].flussOben = true;
         raster[6][3].flussUnten = true;
 
+        raster[6][2].flussLinks = false;
+        raster[6][2].flussRechts = true;
+        raster[6][2].flussOben = false;
+        raster[6][2].flussUnten = false;
+
         raster[7][3].flussLinks = false;
         raster[7][3].flussRechts = true;
         raster[7][3].flussOben = false;
         raster[7][3].flussUnten = true;
+
+        raster[7][4].flussLinks = true;
+        raster[7][4].flussRechts = false;
+        raster[7][4].flussOben = false;
+        raster[7][4].flussUnten = false;
 
         raster[8][3].flussLinks = false;
         raster[8][3].flussRechts = true;
@@ -152,10 +193,20 @@ public class Stadtplan {
         raster[9][4].flussOben = false;
         raster[9][4].flussUnten = true;
 
+        raster[9][5].flussLinks = true;
+        raster[9][5].flussRechts = false;
+        raster[9][5].flussOben = false;
+        raster[9][5].flussUnten = false;
+
         raster[10][4].flussLinks = false;
         raster[10][4].flussRechts = true;
         raster[10][4].flussOben = false;
         raster[10][4].flussUnten = false;
+
+        raster[10][5].flussLinks = true;
+        raster[10][5].flussRechts = false;
+        raster[10][5].flussOben = false;
+        raster[10][5].flussUnten = false;
     }
 
     /**

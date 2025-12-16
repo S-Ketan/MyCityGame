@@ -29,7 +29,7 @@ class PlättchenTest {
             {true, true},
             {true, false}
         };
-        assertEquals(1, plaettchen.getRotation());
+        assertEquals(90, plaettchen.getRotation());
         assertArrayEquals(form90, plaettchen.getForm());
 
         // 2. Rotation (180 degrees)
@@ -38,7 +38,7 @@ class PlättchenTest {
             {true, true},
             {false, true}
         };
-        assertEquals(2, plaettchen.getRotation());
+        assertEquals(180, plaettchen.getRotation());
         assertArrayEquals(form180, plaettchen.getForm());
 
         // 3. Rotation (270 degrees)
@@ -47,7 +47,7 @@ class PlättchenTest {
             {false, true},
             {true, true}
         };
-        assertEquals(3, plaettchen.getRotation());
+        assertEquals(270, plaettchen.getRotation());
         assertArrayEquals(form270, plaettchen.getForm());
 
         // 4. Rotation (360 degrees -> back to initial)
@@ -60,6 +60,8 @@ class PlättchenTest {
     void testDrehenEmpty() {
         boolean[][] form = {};
         Plättchen plaettchen = new Plättchen(1, form);
-        assertDoesNotThrow(plaettchen::drehen);
+        plaettchen.drehen();
+        assertArrayEquals(form, plaettchen.getForm());
+        assertEquals(0, plaettchen.getRotation()); // Rotation should not change for empty forms
     }
 }

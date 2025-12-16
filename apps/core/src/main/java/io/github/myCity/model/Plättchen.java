@@ -31,6 +31,10 @@ public class Plättchen {
      * Dreht das Plättchen um 90 Grad im Uhrzeigersinn
      */
     public void drehen() {
+        if (form == null || form.length == 0 || (form.length > 0 && form[0].length == 0)) {
+            // Cannot rotate an empty or invalid form, so don't change rotation
+            return;
+        }
         rotation = (rotation + 90) % 360;
         form = rotateMatrix(form);
     }
@@ -39,6 +43,13 @@ public class Plättchen {
      * Rotiert eine Matrix um 90 Grad im Uhrzeigersinn
      */
     private boolean[][] rotateMatrix(boolean[][] matrix) {
+        if (matrix == null || matrix.length == 0) { // Check for null or empty matrix (no rows)
+            return matrix;
+        }
+        if (matrix[0].length == 0) { // Check for empty rows (no columns)
+            return matrix;
+        }
+
         int n = matrix.length;
         int m = matrix[0].length;
         boolean[][] rotated = new boolean[m][n];
@@ -84,7 +95,7 @@ public class Plättchen {
     /**
      * Erstellt die Basis-Plättchen für ein Kapitel
      */
-    public static List<Plättchen> createBasiPlättchens() {
+    public static List<Plättchen> createBasisPlättchen() {
         List<Plättchen> pieces = new ArrayList<>();
 
         pieces.add(new Plättchen(1, new boolean[][] { { true, true } }));
@@ -104,9 +115,9 @@ public class Plättchen {
      */
     public static List<Plättchen> create24Plättchen() {
         List<Plättchen> plättchen = new ArrayList<>();
-        List<Plättchen> basis = createBasiPlättchens();
+        List<Plättchen> basis = createBasisPlättchen();
 
-        int[] anzahl = { 2, 2, 2, 2, 2, 2, 2, 2 }; // Gesamt: 24
+        int[] anzahl = { 3, 3, 3, 3, 3, 3, 3, 3 }; // Gesamt: 24
 
         for (int i = 0; i < basis.size(); i++) {
             Plättchen original = basis.get(i);

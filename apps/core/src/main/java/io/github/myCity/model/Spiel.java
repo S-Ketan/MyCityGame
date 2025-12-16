@@ -78,6 +78,13 @@ public class Spiel {
      * Loads a specific episode (1-24).
      */
     public void kapitelLaden(int episodeNummer) {
+        kapitelLaden(episodeNummer, true);
+    }
+
+    /**
+     * Loads a specific episode (1-24).
+     */
+    public void kapitelLaden(int episodeNummer, boolean resetPlayerIndex) {
         if (episodeNummer < 1 || episodeNummer > 24) {
             throw new IllegalArgumentException("Episode must be between 1 and 24");
         }
@@ -334,36 +341,16 @@ public class Spiel {
      */
     private List<Gebäudekarte> erstelleStandardDeck() {
         List<Gebäudekarte> karten = new ArrayList<>();
+        List<Plättchen> plättchenListe = Plättchen.create24Plättchen();
 
-        // Create 24 different tiles with various shapes
-        for (int i = 1; i <= 24; i++) {
-            boolean[][] form = erstelleTileForm(i);
-            Plättchen tile = new Plättchen(i, form);
-            karten.add(new Gebäudekarte(tile));
+        for (Plättchen plättchen : plättchenListe) {
+            karten.add(new Gebäudekarte(plättchen));
         }
 
         return karten;
     }
 
-    /**
-     * Creates a tile shape based on ID.
-     * TODO: Use actual tile shapes from the game.
-     */
-    private boolean[][] erstelleTileForm(int id) {
-        // Simple variety of shapes
-        switch (id % 5) {
-            case 0:
-                return new boolean[][] { { true, true }, { true, false } };
-            case 1:
-                return new boolean[][] { { true, true }, { false, true } };
-            case 2:
-                return new boolean[][] { { true }, { true }, { true } };
-            case 3:
-                return new boolean[][] { { true, true, true } };
-            default:
-                return new boolean[][] { { true, true }, { true, true } };
-        }
-    }
+
 
     /**
      * Gets the bonus description for each episode.
