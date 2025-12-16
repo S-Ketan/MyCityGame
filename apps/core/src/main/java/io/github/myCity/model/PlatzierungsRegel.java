@@ -12,27 +12,28 @@ public class PlatzierungsRegel {
             return false;
         }
 
-        // Rule 1: Check boundaries and overlaps
+        // Rule 1: Check boundaries and overlaps (for all tiles)
         if (!istInGrenzen(plättchen, stadtplan, pos)) {
             System.out.println("❌ Rule violation: Out of bounds or overlapping");
             return false;
         }
 
-        // Rule 2: First tile must be adjacent to river (using edge-based river system)
+        // Branch for first tile vs subsequent tiles
         if (erstes) {
+            // Rule 2: First tile must be adjacent to river
             if (!regelErstesGebäude(plättchen, stadtplan, pos)) {
                 System.out.println("❌ Rule violation: First tile must be adjacent to river");
                 return false;
             }
-            // First tile doesn't need adjacency check
-            return true;
+        } else {
+            // Rule 3: Subsequent tiles must connect to existing buildings
+            if (!regelAnlegenAnGebäude(plättchen, stadtplan, pos)) {
+                System.out.println("❌ Rule violation: Tile must connect to existing buildings");
+                return false;
+            }
         }
 
-        // Rule 3: Must connect to existing buildings
-        if (!regelAnlegenAnGebäude(plättchen, stadtplan, pos)) {
-            System.out.println("❌ Rule violation: Tile must connect to existing buildings");
-            return false;
-        }
+        // Rules for ALL tiles:
 
         // Rule 4: Cannot build on forbidden terrain (rocks, mountains)
         if (!regelKeineBebauung(plättchen, stadtplan, pos)) {

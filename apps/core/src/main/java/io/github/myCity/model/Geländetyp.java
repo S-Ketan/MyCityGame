@@ -7,7 +7,6 @@ public enum Geländetyp {
     WIESE,
     BAUM,
     FELS,
-    FLUSS,
     GEBIRGE,
     WALD
 }

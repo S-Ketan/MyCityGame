@@ -23,10 +23,8 @@ public class Spieler {
     }
 
     public void setPunktzahl(int punktzahl) {
-        if (punktzahl < 0) {
-            throw new IllegalArgumentException("Punktzahl cannot be negative");
-        }
-        this.punktzahl = punktzahl;
+        // Player's score can never be negative
+        this.punktzahl = Math.max(0, punktzahl);
     }
 
     public Stadtplan getStadtplan() {

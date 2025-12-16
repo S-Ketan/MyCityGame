@@ -247,6 +247,8 @@ public class GameScreen implements Screen {
         }
     }
 
+
+
     private void handlePlayerFinished() {
         Spieler currentPlayer = spiel.getCurrentPlayer();
         int currentPlayerIndex = spiel.getAktuellerSpielerIndex();

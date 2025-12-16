@@ -119,7 +119,9 @@ public class Spiel {
 
         // Step 7: Reset for new episode
         erstesTile = new boolean[] { true, true };
-        aktuellerSpielerIndex = 0;
+        if (resetPlayerIndex) {
+            aktuellerSpielerIndex = 0;
+        }
 
         System.out.println("✅ Episode " + episodeNummer + " loaded: " +
                 aktuellesKapitel.getEpisodeName());
