@@ -87,7 +87,8 @@ public class PlatzierungsRegel {
     /**
      * Rule: First tile must be ADJACENT to the river.
      * The river flows BETWEEN cells (marked by blue edges).
-     * A field with river edges (flussOben, etc.) means the river flows ALONG that edge,
+     * A field with river edges (flussOben, etc.) means the river flows ALONG that
+     * edge,
      * but the field itself is buildable!
      * The first tile just needs to have at least one cell that has a river edge.
      */
@@ -112,8 +113,8 @@ public class PlatzierungsRegel {
 
                     System.out.println("  📍 Checking field (" + weltX + ", " + weltY + ")");
                     System.out.println("     Terrain: " + feld.getGelände());
-                    System.out.println("     River edges: Top=" + feld.flussOben + ", Bottom=" + feld.flussUnten + 
-                                     ", Left=" + feld.flussLinks + ", Right=" + feld.flussRechts);
+                    System.out.println("     River edges: Top=" + feld.flussOben + ", Bottom=" + feld.flussUnten +
+                            ", Left=" + feld.flussLinks + ", Right=" + feld.flussRechts);
 
                     // If this field has any river edge, it touches the river!
                     if (feld.hatFluss()) {
@@ -123,7 +124,8 @@ public class PlatzierungsRegel {
                     }
                 }
             }
-            if (touchesRiver) break;
+            if (touchesRiver)
+                break;
         }
 
         if (!touchesRiver) {
@@ -189,8 +191,10 @@ public class PlatzierungsRegel {
     }
 
     /**
-     * Rule: Cannot build on certain terrain types (mountains, forest, and river terrain).
-     * Note: FELS (rocks) and BAUM (trees) are ALLOWED - they affect scoring but not placement.
+     * Rule: Cannot build on certain terrain types (mountains, forest, and river
+     * terrain).
+     * Note: FELS (rocks) and BAUM (trees) are ALLOWED - they affect scoring but not
+     * placement.
      */
     private boolean regelKeineBebauung(Plättchen plättchen, Stadtplan stadtplan, Position pos) {
         boolean[][] form = plättchen.getForm();
@@ -215,9 +219,10 @@ public class PlatzierungsRegel {
                             System.out.println("  ❌ Cannot build on " + terrain + " at (" + weltX + ", " + weltY + ")");
                             return false;
                         }
-                        
+
                         if (terrain == Geländetyp.FELS || terrain == Geländetyp.BAUM) {
-                            System.out.println("  ⚠️ Building on " + terrain + " at (" + weltX + ", " + weltY + ") - will affect score");
+                            System.out.println("  ⚠️ Building on " + terrain + " at (" + weltX + ", " + weltY
+                                    + ") - will affect score");
                         }
                     }
                 }
@@ -238,29 +243,48 @@ public class PlatzierungsRegel {
 
         for (int i = 0; i < form.length; i++) {
             for (int j = 0; j < form[i].length; j++) {
-                if (form[i][j]) {
-                    int weltX = pos.getX() + j;
-                    int weltY = pos.getY() + i;
+                if (!form[i][j]) continue;
 
-                    Feld feld = stadtplan.getFeld(weltX, weltY);
-                    if (feld != null) {
-                        // Check if field is a river (terrain type FLUSS)
-                        // This would be a field that IS the river itself
-                        if (feld.getGelände() == Geländetyp.FLUSS) {
-                            System.out.println("  ❌ Cannot build on FLUSS terrain at (" + weltX + ", " + weltY + ")");
-                            return false;
-                        }
-                        
-                        // River edges are OK! The river flows along the edge, not on the field itself
-                        if (feld.hatFluss()) {
-                            System.out.println("  ℹ️ Field (" + weltX + ", " + weltY + ") has river edge - building allowed!");
-                        }
+                int weltX = pos.getX() + j;
+                int weltY = pos.getY() + i;
+                Feld feld = stadtplan.getFeld(weltX, weltY);
+
+                // Right neighbor inside the same tile
+                if (j + 1 < form[i].length && form[i][j + 1]) {
+                    Feld right = stadtplan.getFeld(weltX + 1, weltY);
+                    if ((feld != null && feld.flussRechts) || (right != null && right.flussLinks)) {
+                        return false; // tile would span across the river horizontally
+                    }
+                }
+
+                // Left neighbor inside the same tile
+                if (j - 1 >= 0 && form[i][j - 1]) {
+                    Feld left = stadtplan.getFeld(weltX - 1, weltY);
+                    if ((feld != null && feld.flussLinks) || (left != null && left.flussRechts)) {
+                        return false; // span across river horizontally
+                    }
+                }
+
+                // Upper neighbor inside the same tile
+                if (i + 1 < form.length && form[i + 1][j]) {
+                    Feld up = stadtplan.getFeld(weltX, weltY + 1);
+                    if ((feld != null && feld.flussOben) || (up != null && up.flussUnten)) {
+                        return false; // span across river vertically
+                    }
+                }
+
+                // Lower neighbor inside the same tile
+                if (i - 1 >= 0 && form[i - 1][j]) {
+                    Feld down = stadtplan.getFeld(weltX, weltY - 1);
+                    if ((feld != null && feld.flussUnten) || (down != null && down.flussOben)) {
+                        return false; // span across river vertically
                     }
                 }
             }
         }
 
-        return true; // No river violations
+        // Touching a river edge is allowed as long as the tile doesn't cross it.
+        return true;
     }
 
     /**

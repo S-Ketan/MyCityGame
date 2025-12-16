@@ -40,7 +40,7 @@ public class Spieler {
         }
         boolean[][] form = plaettchen.getForm();
         for (int i = 0; i < form.length; i++) {
-            for (int j = 0; j < form.length; j++) {
+            for (int j = 0; j < form[i].length; j++) {
                 if (form[i][j]) {
                     int weltX = pos.getX() + j;
                     int weltY = pos.getY() + i;

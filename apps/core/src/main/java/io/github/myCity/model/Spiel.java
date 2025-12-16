@@ -15,7 +15,7 @@ public class Spiel {
     private Spielstand spielstand;
     private int aktuellerSpielerIndex;
     private int aktuellesKapitelNummer;
-    private boolean erstesTile;
+    private boolean[] erstesTile;
     /**
      * Mine depth for episodes 16-18.
      * Gold nuggets collected in mine (episode 18).
@@ -41,7 +41,7 @@ public class Spiel {
         this.spieler = new Spieler[2];
         this.aktuellerSpielerIndex = 0;
         this.aktuellesKapitelNummer = 1;
-        this.erstesTile = true;
+        this.erstesTile = new boolean[] { true, true };
     }
 
     // ========== GAME INITIALIZATION ==========
@@ -61,7 +61,7 @@ public class Spiel {
         // Step 2: Reset scores and game state
         aktuellerSpielerIndex = 0;
         aktuellesKapitelNummer = 1;
-        erstesTile = true;
+        erstesTile = new boolean[] { true, true };
 
         // Step 3: Load the first episode
         kapitelLaden(1);
@@ -111,7 +111,7 @@ public class Spiel {
         }
 
         // Step 7: Reset for new episode
-        erstesTile = true;
+        erstesTile = new boolean[] { true, true };
         aktuellerSpielerIndex = 0;
 
         System.out.println("✅ Episode " + episodeNummer + " loaded: " +
@@ -194,8 +194,8 @@ public class Spiel {
         boolean isValid = aktuellesKapitel.istPlatzierungGültig(
                 tile,
                 currentPlayer.getStadtplan(),
-                pos,
-                erstesTile);
+            pos,
+            erstesTile[aktuellerSpielerIndex]);
 
         if (!isValid) {
             System.out.println("❌ Invalid placement!");
@@ -207,7 +207,7 @@ public class Spiel {
         System.out.println("✅ " + currentPlayer.getName() + " placed tile at " + pos);
 
         // Step 4: No longer the first tile
-        erstesTile = false;
+        erstesTile[aktuellerSpielerIndex] = false;
 
         // Step 5: Switch to next player
         wechselSpieler();

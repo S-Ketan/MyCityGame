@@ -15,7 +15,15 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.github.myCity.Main;
-import io.github.myCity.model.*;
+import io.github.myCity.model.BuildingColor;
+import io.github.myCity.model.Feld;
+import io.github.myCity.model.Gebäudekarte;
+import io.github.myCity.model.Geländetyp;
+import io.github.myCity.model.Plättchen;
+import io.github.myCity.model.Position;
+import io.github.myCity.model.Spiel;
+import io.github.myCity.model.Spieler;
+import io.github.myCity.model.Stadtplan;
 
 public class GameScreen implements Screen {
     private final Main game;
@@ -612,22 +620,7 @@ public class GameScreen implements Screen {
         }
         game.shapeRenderer.end();
         
-        // Draw grid coordinates for debugging (only for first tile placement)
-        if (isFirstTileForPlayer) {
-            game.batch.begin();
-            game.font.setColor(Color.WHITE);
-            game.font.getData().setScale(0.5f);
-            for (int i = 0; i < GRID_SIZE; i++) {
-                for (int j = 0; j < GRID_SIZE; j++) {
-                    String coord = i + "," + j;
-                    float x = gridStartX + i * TILE_SIZE + 5;
-                    float y = gridStartY + j * TILE_SIZE + TILE_SIZE - 5;
-                    game.font.draw(game.batch, coord, x, y);
-                }
-            }
-            game.font.getData().setScale(1.0f);
-            game.batch.end();
-        }
+        // Debug coordinates removed for normal play; re-enable if needed
     }
     
     private Color getColorForBuildingColor(BuildingColor buildingColor) {
