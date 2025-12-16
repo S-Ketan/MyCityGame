@@ -238,4 +238,20 @@ public class Stadtplan {
     public List<Sticker> getSticker() {
         return sticker;
     }
+
+    /**
+     * Counts how many fields are currently occupied by placed tiles.
+     */
+    public int countBelegteFelder() {
+        int count = 0;
+        for (int y = 0; y < 11; y++) {
+            for (int x = 0; x < 11; x++) {
+                Feld feld = raster[y][x];
+                if (feld != null && feld.istBelegt()) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
 }

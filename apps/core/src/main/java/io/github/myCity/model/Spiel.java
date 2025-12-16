@@ -206,6 +206,9 @@ public class Spiel {
         currentPlayer.plaettchenLegen(tile, pos);
         System.out.println("✅ " + currentPlayer.getName() + " placed tile at " + pos);
 
+        // Update score after placement
+        refreshScore(aktuellerSpielerIndex);
+
         // Step 4: No longer the first tile
         erstesTile[aktuellerSpielerIndex] = false;
 
@@ -225,6 +228,22 @@ public class Spiel {
         // TODO: Apply skip penalty based on episode rules
 
         wechselSpieler();
+    }
+
+    /**
+     * Recalculate and update the score for the given player based on occupied cells and chapter bonus.
+     */
+    public void refreshScore(int playerIndex) {
+        if (playerIndex < 0 || playerIndex >= spieler.length || spieler[playerIndex] == null || aktuellesKapitel == null) {
+            return;
+        }
+        Spieler p = spieler[playerIndex];
+        Stadtplan plan = p.getStadtplan();
+
+        int base = plan.countBelegteFelder();
+        int bonus = aktuellesKapitel.berechneBonus(plan, this, playerIndex);
+
+        p.setPunktzahl(base + bonus);
     }
 
     /**

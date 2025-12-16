@@ -225,6 +225,9 @@ public class GameScreen implements Screen {
             // Place the tile
             spiel.getCurrentPlayer().plaettchenLegen(plättchen, pos);
             Gdx.app.log("Game", "✓ Tile placed successfully at (" + gridX + ", " + gridY + ")");
+
+            // Update score to reflect placement
+            spiel.refreshScore(spiel.getAktuellerSpielerIndex());
             
             isFirstTileForPlayer = false;
             currentPlayerTileCount++;
