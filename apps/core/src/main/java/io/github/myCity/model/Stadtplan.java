@@ -88,6 +88,7 @@ public class Stadtplan {
      */
     private void initialisiereFluss() {
         // Fluss-Koordinaten genau wie vorgegeben
+        // Raster-Koordinaten: raster[y][x]
         raster[0][2].flussLinks = true;
         raster[0][2].flussRechts = false;
         raster[0][2].flussOben = true;
@@ -137,11 +138,6 @@ public class Stadtplan {
         raster[4][5].flussRechts = false;
         raster[4][5].flussOben = false;
         raster[4][5].flussUnten = false;
-
-        raster[4][6].flussLinks = false;
-        raster[4][6].flussRechts = false;
-        raster[4][6].flussOben = false;
-        raster[4][6].flussUnten = true;
 
         raster[5][4].flussLinks = false;
         raster[5][4].flussRechts = true;
