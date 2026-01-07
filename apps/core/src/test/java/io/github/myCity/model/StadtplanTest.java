@@ -26,22 +26,23 @@ class StadtplanTest {
     @Test
     void testInitialisiereFluss() {
         Stadtplan stadtplanWithRiver = new Stadtplan(true); // Create a Stadtplan that initializes the river
-        
-        // Check a point on the vertical part of the L-shaped river
-        Feld verticalRiverTile = stadtplanWithRiver.getFeld(5, 6);
-        assertNotNull(verticalRiverTile);
-        assertTrue(verticalRiverTile.hatFluss(), "Tile at (5,6) should be part of the river.");
-        assertEquals(Geländetyp.WIESE, verticalRiverTile.getGelände(), "River tiles should have WIESE as their base terrain.");
-        assertTrue(verticalRiverTile.flussOben);
-        assertTrue(verticalRiverTile.flussUnten);
 
-        // Check the corner tile
-        Feld cornerTile = stadtplanWithRiver.getFeld(5, 4);
+        // Check a point on the river path (raster[5][4] has flussRechts=true, flussOben=true)
+        // getFeld(x,y) returns raster[y][x], so getFeld(4,5) returns raster[5][4]
+        Feld riverTile = stadtplanWithRiver.getFeld(4, 5);
+        assertNotNull(riverTile);
+        assertTrue(riverTile.hatFluss(), "Tile at (4,5) should be part of the river.");
+        assertEquals(Geländetyp.WIESE, riverTile.getGelände(), "River tiles should have WIESE as their base terrain.");
+        assertTrue(riverTile.flussRechts);
+        assertTrue(riverTile.flussOben);
+
+        // Check another river tile (raster[6][3] has flussLinks=true, flussOben=true, flussUnten=true)
+        Feld cornerTile = stadtplanWithRiver.getFeld(3, 6);
         assertNotNull(cornerTile);
-        assertTrue(cornerTile.hatFluss(), "Tile at (5,4) should be the corner of the river.");
-        assertTrue(cornerTile.flussUnten);
+        assertTrue(cornerTile.hatFluss(), "Tile at (3,6) should be part of the river.");
         assertTrue(cornerTile.flussLinks);
-
+        assertTrue(cornerTile.flussOben);
+        assertTrue(cornerTile.flussUnten);
 
         // Check a non-river tile
         Feld nonRiverTile = stadtplanWithRiver.getFeld(0, 0);
@@ -81,26 +82,73 @@ class StadtplanTest {
     void testBäumeZählen() {
         assertEquals(0, stadtplan.bäumeZählen());
         stadtplan.getFeld(2,2).setGelände(Geländetyp.BAUM);
-        // Each tree is worth 2 points
-        assertEquals(2, stadtplan.bäumeZählen());
+        // Each visible tree is worth +1 point
+        assertEquals(1, stadtplan.bäumeZählen());
         stadtplan.getFeld(2,3).setGelände(Geländetyp.BAUM);
-        assertEquals(4, stadtplan.bäumeZählen());
+        assertEquals(2, stadtplan.bäumeZählen());
         // A covered tree should not be counted
         stadtplan.getFeld(2,3).setBelegt(true);
-        assertEquals(2, stadtplan.bäumeZählen());
+        assertEquals(1, stadtplan.bäumeZählen());
     }
 
     @Test
     void testFelsenZählen() {
         assertEquals(0, stadtplan.felsenZählen());
         stadtplan.getFeld(2,2).setGelände(Geländetyp.FELS);
-        // Each rock is worth -2 points
-        assertEquals(-2, stadtplan.felsenZählen());
+        // Each visible rock is worth -1 point
+        assertEquals(-1, stadtplan.felsenZählen());
         stadtplan.getFeld(2,3).setGelände(Geländetyp.FELS);
-        assertEquals(-4, stadtplan.felsenZählen());
+        assertEquals(-2, stadtplan.felsenZählen());
         // A covered rock should not be counted
         stadtplan.getFeld(2,3).setBelegt(true);
-        assertEquals(-2, stadtplan.felsenZählen());
+        assertEquals(-1, stadtplan.felsenZählen());
+    }
+
+    @Test
+    void testLeereWiesenZählen() {
+        // All 121 fields start as empty WIESE (without rivers)
+        Stadtplan plan = new Stadtplan(false);
+        assertEquals(-121, plan.leereWiesenZählen());
+
+        // Cover some fields
+        plan.getFeld(0,0).setBelegt(true);
+        plan.getFeld(1,1).setBelegt(true);
+        assertEquals(-119, plan.leereWiesenZählen());
+
+        // Fields with other terrain types don't count
+        plan.getFeld(2,2).setGelände(Geländetyp.BAUM);
+        plan.getFeld(3,3).setGelände(Geländetyp.FELS);
+        assertEquals(-117, plan.leereWiesenZählen());
+    }
+
+    @Test
+    void testScoreCalculationWithRealBoard() {
+        // Test with a real initialized board
+        Stadtplan plan = new Stadtplan(true);
+
+        int trees = plan.bäumeZählen();
+        int rocks = plan.felsenZählen();
+        int emptyWiesen = plan.leereWiesenZählen();
+
+        // Board has 5 trees, 8 rocks
+        assertEquals(5, trees, "Should have 5 visible trees (+5 points)");
+        assertEquals(-8, rocks, "Should have 8 visible rocks (-8 points)");
+
+        // Print for debugging
+        System.out.println("Trees: " + trees);
+        System.out.println("Rocks: " + rocks);
+        System.out.println("Empty WIESE: " + emptyWiesen);
+
+        // Calculate score without skips
+        int baseScore = 10 + trees + rocks + emptyWiesen;
+        System.out.println("Base score (10 + trees + rocks + emptyWiesen): " + baseScore);
+
+        // If all 24 tiles skipped
+        int scoreWith24Skips = baseScore - 24;
+        System.out.println("Score with 24 skips: " + scoreWith24Skips);
+
+        // The score should be very negative and clamp to 0
+        assertTrue(scoreWith24Skips < 0, "Score with all skips should be negative before clamping");
     }
 
     @Test

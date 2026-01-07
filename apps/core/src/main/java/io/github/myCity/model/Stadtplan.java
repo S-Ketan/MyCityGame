@@ -237,24 +237,50 @@ public class Stadtplan {
         return null;
     }
 
+    /**
+     * Counts visible trees (uncovered BAUM fields).
+     * Each visible tree = +1 point.
+     */
     public int bäumeZählen() {
         int anzahl = 0;
         for (int i = 0; i < 11; i++) {
             for (int j = 0; j < 11; j++) {
                 if (raster[i][j].getGelände() == Geländetyp.BAUM && !raster[i][j].istBelegt()) {
-                    anzahl += 2;
+                    anzahl += 1;
                 }
             }
         }
         return anzahl;
     }
 
+    /**
+     * Counts visible rocks (uncovered FELS fields).
+     * Each visible rock = -1 point.
+     */
     public int felsenZählen() {
         int anzahl = 0;
         for (int i = 0; i < 11; i++) {
             for (int j = 0; j < 11; j++) {
                 if (raster[i][j].getGelände() == Geländetyp.FELS && !raster[i][j].istBelegt()) {
-                    anzahl -= 2;
+                    anzahl -= 1;
+                }
+            }
+        }
+        return anzahl;
+    }
+
+    /**
+     * Counts empty light green spaces (uncovered WIESE fields that are buildable).
+     * Each empty light green space = -1 point.
+     * Excludes fields with rivers as they cannot be built on.
+     */
+    public int leereWiesenZählen() {
+        int anzahl = 0;
+        for (int i = 0; i < 11; i++) {
+            for (int j = 0; j < 11; j++) {
+                Feld feld = raster[i][j];
+                if (feld.getGelände() == Geländetyp.WIESE && !feld.istBelegt() && !feld.hatFluss()) {
+                    anzahl -= 1;
                 }
             }
         }
@@ -300,5 +326,21 @@ public class Stadtplan {
             }
         }
         return count;
+    }
+
+    /**
+     * Clears all placed buildings from the board while keeping stickers.
+     * Used between episodes in Chapter 1.
+     */
+    public void clearBuildings() {
+        for (int y = 0; y < 11; y++) {
+            for (int x = 0; x < 11; x++) {
+                Feld feld = raster[y][x];
+                if (feld != null) {
+                    feld.setBelegt(false);
+                    feld.setColor(BuildingColor.NONE);
+                }
+            }
+        }
     }
 }

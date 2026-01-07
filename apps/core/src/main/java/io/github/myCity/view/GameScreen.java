@@ -68,7 +68,29 @@ public class GameScreen implements Screen {
         rotateButton = new Rectangle(0, 0, 140, 40);
         saveButton = new Rectangle(0, 0, 180, 50);
         continueButton = new Rectangle(0, 0, 180, 50);
-        
+
+        // Initialize tile position (right side of screen)
+        resetTilePosition();
+    }
+
+    /**
+     * Constructor for continuing an existing game (e.g., after chapter end screen).
+     */
+    public GameScreen(Main game, Spiel existingSpiel) {
+        this.game = game;
+        this.spiel = existingSpiel;
+        this.currentCard = spiel.getAktuellesKapitel().zieheKarte();
+        this.currentPlayerTileCount = 0;
+        this.isFirstTileForPlayer = true;
+
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(GRID_WORLD_SIZE + 300, GRID_WORLD_SIZE + 100, camera);
+
+        skipButton = new Rectangle(0, 0, 140, 40);
+        rotateButton = new Rectangle(0, 0, 140, 40);
+        saveButton = new Rectangle(0, 0, 180, 50);
+        continueButton = new Rectangle(0, 0, 180, 50);
+
         // Initialize tile position (right side of screen)
         resetTilePosition();
     }
@@ -283,20 +305,22 @@ public class GameScreen implements Screen {
     }
 
     private void endChapter() {
-        Gdx.app.log("Game", "Chapter " + spiel.getAktuellesKapitelNummer() + " completed!");
-        
-        // Calculate bonuses for both players
+        int chapterNumber = spiel.getAktuellesKapitelNummer();
+        Gdx.app.log("Game", "Chapter " + chapterNumber + " completed!");
+
+        // Calculate bonuses for both players and store them
+        int[] bonuses = new int[2];
         for (int i = 0; i < 2; i++) {
             Spieler player = spiel.getSpieler()[i];
-            int bonus = spiel.getAktuellesKapitel().berechneBonus(player.getStadtplan());
-            player.setPunktzahl(player.getPunktzahl() + bonus);
-            
-            Gdx.app.log("Game", player.getName() + " bonus: " + bonus + 
+            bonuses[i] = spiel.getAktuellesKapitel().berechneBonus(player.getStadtplan());
+            player.setPunktzahl(player.getPunktzahl() + bonuses[i]);
+
+            Gdx.app.log("Game", player.getName() + " bonus: " + bonuses[i] +
                        ", Total score: " + player.getPunktzahl());
         }
-        
-        // Show chapter end dialog
-        showChapterEndDialog = true;
+
+        // Transition to Chapter End Screen instead of showing overlay
+        game.setScreen(new ChapterEndScreen(game, spiel, chapterNumber, bonuses));
     }
 
     private void skipTile() {

@@ -1,17 +1,23 @@
 package io.github.myCity.model;
 
 public class Spieler {
+    private static final int START_PUNKTZAHL = 10;
+    private static final int MIN_PUNKTZAHL = 0;
+    private static final int MAX_PUNKTZAHL = 50;
+
     private final String name;
     private int punktzahl;
     private final Stadtplan stadtplan;
+    private int übersprungeneGebäude;
 
     public Spieler(String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Player name cannot be null or empty");
         }
         this.name = name;
-        this.punktzahl = 0;
+        this.punktzahl = START_PUNKTZAHL;
         this.stadtplan = new Stadtplan();
+        this.übersprungeneGebäude = 0;
     }
 
     public String getName() {
@@ -23,8 +29,8 @@ public class Spieler {
     }
 
     public void setPunktzahl(int punktzahl) {
-        // Player's score can never be negative
-        this.punktzahl = Math.max(0, punktzahl);
+        // Clamp score between MIN_PUNKTZAHL (0) and MAX_PUNKTZAHL (50)
+        this.punktzahl = Math.max(MIN_PUNKTZAHL, Math.min(MAX_PUNKTZAHL, punktzahl));
     }
 
     public Stadtplan getStadtplan() {
@@ -77,13 +83,20 @@ public class Spieler {
     }
 
     public void plaettchenUeberspringen() {
-        // This might involve:
-        // 1. Applying penalty points (subtract from punktzahl)
-        // 2. Notifying the game controller
-        // 3. Moving to next player's turn
-        // The skip action is recorded but penalty is applied by the game controller
-        // based on chapter-specific rules
+        // Track skipped tiles for score calculation (-1 point each)
+        übersprungeneGebäude++;
         System.out.println(name + " hat das Plättchen übersprungen.");
+    }
+
+    public int getÜbersprungeneGebäude() {
+        return übersprungeneGebäude;
+    }
+
+    /**
+     * Resets skipped buildings counter. Used between episodes in Chapter 1.
+     */
+    public void resetÜbersprungeneGebäude() {
+        this.übersprungeneGebäude = 0;
     }
 
     @Override

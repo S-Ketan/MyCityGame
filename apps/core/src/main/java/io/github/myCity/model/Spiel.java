@@ -123,6 +123,12 @@ public class Spiel {
             aktuellerSpielerIndex = 0;
         }
 
+        // Step 8: Calculate initial scores for both players
+        if (spieler[0] != null && spieler[1] != null) {
+            refreshScore(0);
+            refreshScore(1);
+        }
+
         System.out.println("✅ Episode " + episodeNummer + " loaded: " +
                 aktuellesKapitel.getEpisodeName());
     }
@@ -229,30 +235,54 @@ public class Spiel {
 
     /**
      * Current player skips placing the tile.
+     * Each skipped building results in -1 point.
      */
     public void ueberspringe() {
+        int currentIndex = aktuellerSpielerIndex;
         Spieler currentPlayer = getCurrentPlayer();
         currentPlayer.plaettchenUeberspringen();
 
-        // TODO: Apply skip penalty based on episode rules
+        // Refresh score to reflect the skipped building penalty
+        refreshScore(currentIndex);
 
         wechselSpieler();
     }
 
     /**
-     * Recalculate and update the score for the given player based on occupied cells and chapter bonus.
+     * Recalculate and update the score for the given player.
+     *
+     * Scoring rules:
+     * - Start with 10 points
+     * - +1 for each visible tree (Baum) on light green space
+     * - -1 for each visible rock (Fels) on light green space
+     * - -1 for each empty light green space (WIESE not covered)
+     * - -1 for each skipped building
+     * - Score is clamped between 0 and 50
      */
     public void refreshScore(int playerIndex) {
-        if (playerIndex < 0 || playerIndex >= spieler.length || spieler[playerIndex] == null || aktuellesKapitel == null) {
+        if (playerIndex < 0 || playerIndex >= spieler.length || spieler[playerIndex] == null) {
             return;
         }
         Spieler p = spieler[playerIndex];
         Stadtplan plan = p.getStadtplan();
 
-        int base = plan.countBelegteFelder();
-        int bonus = aktuellesKapitel.berechneBonus(plan, this, playerIndex);
+        // Base score: 10 points
+        int score = 10;
 
-        p.setPunktzahl(base + bonus);
+        // +1 per visible tree
+        score += plan.bäumeZählen();
+
+        // -1 per visible rock (felsenZählen returns negative values)
+        score += plan.felsenZählen();
+
+        // -1 per empty light green space (leereWiesenZählen returns negative values)
+        score += plan.leereWiesenZählen();
+
+        // -1 per skipped building
+        score -= p.getÜbersprungeneGebäude();
+
+        // Set score (will be clamped to 0-50 by Spieler.setPunktzahl)
+        p.setPunktzahl(score);
     }
 
     /**
