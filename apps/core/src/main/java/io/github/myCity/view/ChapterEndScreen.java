@@ -239,9 +239,17 @@ public class ChapterEndScreen implements Screen {
             winnerName = players[1].getName();
             loserName = players[0].getName();
         } else {
-            resultText = "It's a tie!";
-            winnerName = players[0].getName();
-            loserName = players[1].getName();
+            // Tie - use tiebreaker to determine winner
+            int tiebreakerWinner = resolveTiebreakerForWinner(players);
+            if (tiebreakerWinner == 0) {
+                resultText = players[0].getName() + " wins (tiebreaker)!";
+                winnerName = players[0].getName();
+                loserName = players[1].getName();
+            } else {
+                resultText = players[1].getName() + " wins (tiebreaker)!";
+                winnerName = players[1].getName();
+                loserName = players[0].getName();
+            }
         }
         Label resultLabel = new Label(resultText, skin, "header");
         resultLabel.setFontScale(1.2f);
@@ -348,6 +356,38 @@ public class ChapterEndScreen implements Screen {
         return "default";
     }
 
+    /**
+     * Resolves a tie by comparing empty light green spaces row by row from top to bottom.
+     * Player with fewer empty spaces in the top row wins.
+     * If tied, check second row, etc.
+     *
+     * @return index of winner (0 or 1), defaults to 0 if complete tie
+     */
+    private int resolveTiebreakerForWinner(Spieler[] players) {
+        int[] player1EmptyPerRow = players[0].getStadtplan().countEmptyWiesePerRow();
+        int[] player2EmptyPerRow = players[1].getStadtplan().countEmptyWiesePerRow();
+
+        // Compare row by row from top (index 0) to bottom (index 10)
+        for (int row = 0; row < 11; row++) {
+            if (player1EmptyPerRow[row] < player2EmptyPerRow[row]) {
+                // Player 1 has fewer empty spaces in this row - Player 1 wins
+                Gdx.app.log("ChapterEnd", "Tiebreaker: " + players[0].getName() +
+                           " wins (fewer empty spaces in row " + (row + 1) + ")");
+                return 0;
+            } else if (player2EmptyPerRow[row] < player1EmptyPerRow[row]) {
+                // Player 2 has fewer empty spaces in this row - Player 2 wins
+                Gdx.app.log("ChapterEnd", "Tiebreaker: " + players[1].getName() +
+                           " wins (fewer empty spaces in row " + (row + 1) + ")");
+                return 1;
+            }
+            // If equal, continue to next row
+        }
+
+        // Complete tie - default to player 0
+        Gdx.app.log("ChapterEnd", "Tiebreaker: Complete tie - defaulting to " + players[0].getName());
+        return 0;
+    }
+
     private void startNextChapter() {
         // Check if someone won the game
         Spieler gameWinner = spiel.checkForGameWinner();
@@ -371,6 +411,7 @@ public class ChapterEndScreen implements Screen {
         // For episodes 1-3 (Chapter 1): Go to sticker placement screen
         if (chapterNumber >= 1 && chapterNumber <= 3) {
             // Determine winner (higher score wins, gets ROCK penalty)
+            // On tie, use tiebreaker: fewer empty green spaces in top row wins
             Spieler[] players = spiel.getSpieler();
             int score1 = players[0].getPunktzahl();
             int score2 = players[1].getPunktzahl();
@@ -381,8 +422,8 @@ public class ChapterEndScreen implements Screen {
             } else if (score2 > score1) {
                 winnerIndex = 1;
             } else {
-                // Tie - player 0 is considered "winner" for sticker placement
-                winnerIndex = 0;
+                // Tie - use tiebreaker rule (fewer empty spaces row by row)
+                winnerIndex = resolveTiebreakerForWinner(players);
             }
 
             Gdx.app.log("ChapterEnd", "Episode " + chapterNumber + " winner: " +

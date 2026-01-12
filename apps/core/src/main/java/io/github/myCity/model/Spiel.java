@@ -320,7 +320,8 @@ public class Spiel {
      * Calculates and awards progress points at the end of a chapter.
      * - Winner gets 2 progress points
      * - Loser gets 1 progress point
-     * - If tie, both get 1 progress point
+     * - If tie in score, use tiebreaker: player with fewer empty light green spaces
+     *   in top row wins. If tied there, check second row, etc.
      * - Bonus: +1 progress point if player reached 50 scoring points
      *
      * @return int array with [player1ProgressAwarded, player2ProgressAwarded]
@@ -340,9 +341,21 @@ public class Spiel {
             awarded[0] = 1;
             awarded[1] = 2;
         } else {
-            // Tie - both get 1 point
-            awarded[0] = 1;
-            awarded[1] = 1;
+            // Tie in score - use tiebreaker rule
+            int tiebreakResult = resolveTiebreaker();
+            if (tiebreakResult > 0) {
+                // Player 1 wins tiebreaker (fewer empty spaces)
+                awarded[0] = 2;
+                awarded[1] = 1;
+            } else if (tiebreakResult < 0) {
+                // Player 2 wins tiebreaker (fewer empty spaces)
+                awarded[0] = 1;
+                awarded[1] = 2;
+            } else {
+                // Complete tie - both get 1 point
+                awarded[0] = 1;
+                awarded[1] = 1;
+            }
         }
 
         // Bonus: +1 if player reached 50 scoring points
@@ -364,6 +377,36 @@ public class Spiel {
                          " (Total: " + spieler[1].getProgressPoints() + "/100)");
 
         return awarded;
+    }
+
+    /**
+     * Resolves a tie by comparing empty light green spaces row by row from top to bottom.
+     * Player with fewer empty spaces in the top row wins.
+     * If tied, check second row, etc.
+     *
+     * @return positive if player 1 wins, negative if player 2 wins, 0 if complete tie
+     */
+    private int resolveTiebreaker() {
+        int[] player1EmptyPerRow = spieler[0].getStadtplan().countEmptyWiesePerRow();
+        int[] player2EmptyPerRow = spieler[1].getStadtplan().countEmptyWiesePerRow();
+
+        // Compare row by row from top (index 0) to bottom (index 10)
+        for (int row = 0; row < 11; row++) {
+            if (player1EmptyPerRow[row] < player2EmptyPerRow[row]) {
+                // Player 1 has fewer empty spaces in this row - Player 1 wins
+                System.out.println("🎯 Tiebreaker: " + spieler[0].getName() + " wins (fewer empty spaces in row " + (row + 1) + ")");
+                return 1;
+            } else if (player2EmptyPerRow[row] < player1EmptyPerRow[row]) {
+                // Player 2 has fewer empty spaces in this row - Player 2 wins
+                System.out.println("🎯 Tiebreaker: " + spieler[1].getName() + " wins (fewer empty spaces in row " + (row + 1) + ")");
+                return -1;
+            }
+            // If equal, continue to next row
+        }
+
+        // Complete tie - all rows have same number of empty spaces
+        System.out.println("🎯 Tiebreaker: Complete tie - all rows equal");
+        return 0;
     }
 
     /**

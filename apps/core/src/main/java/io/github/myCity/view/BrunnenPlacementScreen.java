@@ -123,6 +123,10 @@ public class BrunnenPlacementScreen implements Screen {
                     if (feld.getGelände() != Geländetyp.WIESE) {
                         return false;
                     }
+                    // Cannot place Brunnen next to a river
+                    if (isAdjacentToRiver(stadtplan, pos.getX(), pos.getY())) {
+                        return false;
+                    }
                     for (Sticker s : stadtplan.getSticker()) {
                         if (s.getPos().getX() == pos.getX() && s.getPos().getY() == pos.getY()) {
                             return false;
@@ -132,6 +136,30 @@ public class BrunnenPlacementScreen implements Screen {
                 }
             }
         }
+        return false;
+    }
+
+    /**
+     * Checks if the given position is adjacent to a river.
+     * A field is adjacent to a river if it or any of its neighbors have river edges.
+     */
+    private boolean isAdjacentToRiver(Stadtplan stadtplan, int x, int y) {
+        Feld feld = stadtplan.getFeld(x, y);
+        if (feld != null && feld.hatFluss()) {
+            return true;
+        }
+
+        // Check all 4 neighbors for river edges
+        Feld top = stadtplan.getFeld(x, y + 1);
+        Feld bottom = stadtplan.getFeld(x, y - 1);
+        Feld left = stadtplan.getFeld(x - 1, y);
+        Feld right = stadtplan.getFeld(x + 1, y);
+
+        if (top != null && top.hatFluss()) return true;
+        if (bottom != null && bottom.hatFluss()) return true;
+        if (left != null && left.hatFluss()) return true;
+        if (right != null && right.hatFluss()) return true;
+
         return false;
     }
 

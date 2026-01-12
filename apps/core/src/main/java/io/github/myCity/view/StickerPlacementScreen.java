@@ -146,6 +146,10 @@ public class StickerPlacementScreen implements Screen {
                     if (feld.getGelände() != Geländetyp.WIESE) {
                         return false;
                     }
+                    // Brunnen cannot be placed next to a river
+                    if (currentStickerType == StickerTyp.BRUNNEN && isAdjacentToRiver(stadtplan, pos.getX(), pos.getY())) {
+                        return false;
+                    }
                     // Check for existing stickers
                     for (Sticker s : stadtplan.getSticker()) {
                         if (s.getPos().getX() == pos.getX() && s.getPos().getY() == pos.getY()) {
@@ -159,21 +163,59 @@ public class StickerPlacementScreen implements Screen {
         return false;
     }
 
+    /**
+     * Checks if the given position is adjacent to a river.
+     */
+    private boolean isAdjacentToRiver(Stadtplan stadtplan, int x, int y) {
+        Feld feld = stadtplan.getFeld(x, y);
+        if (feld != null && feld.hatFluss()) {
+            return true;
+        }
+
+        // Check all 4 neighbors for river edges
+        Feld top = stadtplan.getFeld(x, y + 1);
+        Feld bottom = stadtplan.getFeld(x, y - 1);
+        Feld left = stadtplan.getFeld(x - 1, y);
+        Feld right = stadtplan.getFeld(x + 1, y);
+
+        if (top != null && top.hatFluss()) return true;
+        if (bottom != null && bottom.hatFluss()) return true;
+        if (left != null && left.hatFluss()) return true;
+        if (right != null && right.hatFluss()) return true;
+
+        return false;
+    }
+
     private void placeSticker(Position pos) {
         Spieler player = spiel.getSpieler()[currentPlacingPlayer];
-        String description = currentStickerType == StickerTyp.FELS_HINZUFÜGEN ? "rock_chapter1" : "tree_chapter1";
+        String description;
+        String stickerName;
+        if (currentStickerType == StickerTyp.FELS_HINZUFÜGEN) {
+            description = "rock_chapter1";
+            stickerName = "ROCK";
+        } else if (currentStickerType == StickerTyp.BRUNNEN) {
+            description = "brunnen_episode3";
+            stickerName = "BRUNNEN";
+        } else {
+            description = "tree_chapter1";
+            stickerName = "TREE";
+        }
         Sticker sticker = new Sticker(currentStickerType, pos, description);
         player.getStadtplan().addSticker(sticker);
 
-        Gdx.app.log("StickerPlacement", player.getName() + " placed " +
-                   (currentStickerType == StickerTyp.FELS_HINZUFÜGEN ? "ROCK" : "TREE") +
+        Gdx.app.log("StickerPlacement", player.getName() + " placed " + stickerName +
                    " sticker at (" + pos.getX() + ", " + pos.getY() + ")");
 
         if (!winnerPlaced) {
             // Winner just placed, now loser's turn
             winnerPlaced = true;
             currentPlacingPlayer = loserIndex;
-            currentStickerType = StickerTyp.BAUM_HINZUFÜGEN;
+            // Episode 3: Loser places BRUNNEN instead of TREE
+            if (completedEpisode == 3) {
+                currentStickerType = StickerTyp.BRUNNEN;
+            } else {
+                currentStickerType = StickerTyp.BAUM_HINZUFÜGEN;
+            }
             currentPlayerRole = "loser";
         } else {
             // Loser placed, proceed to next episode

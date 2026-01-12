@@ -367,10 +367,13 @@ public class Stadtplan {
             for (int y = 0; y < 11; y++) {
                 for (int x = 0; x < 11; x++) {
                     Feld feld = raster[y][x];
-                    if (feld != null && feld.istBelegt() && feld.getColor() == color && !visited[y][x]) {
+                    // Only count fields that are occupied, have the matching color, have a valid tileId, and haven't been visited
+                    if (feld != null && feld.istBelegt() && feld.getColor() == color && feld.getTileId() > 0 && !visited[y][x]) {
                         // Count unique tiles in this connected group
                         java.util.Set<Integer> uniqueTileIds = new java.util.HashSet<>();
                         countConnectedTiles(x, y, color, visited, uniqueTileIds);
+                        // Remove tileId 0 if somehow added (safety check)
+                        uniqueTileIds.remove(0);
                         int tileCount = uniqueTileIds.size();
                         if (tileCount > maxConnectedForColor) {
                             maxConnectedForColor = tileCount;
@@ -389,6 +392,7 @@ public class Stadtplan {
     /**
      * Helper method for flood-fill counting of connected same-color tiles.
      * Collects unique tile IDs in the connected group.
+     * Only counts tiles with valid tileId > 0.
      */
     private void countConnectedTiles(int x, int y, BuildingColor color, boolean[][] visited, java.util.Set<Integer> uniqueTileIds) {
         if (x < 0 || x >= 11 || y < 0 || y >= 11) {
@@ -399,7 +403,8 @@ public class Stadtplan {
         }
 
         Feld feld = raster[y][x];
-        if (feld == null || !feld.istBelegt() || feld.getColor() != color) {
+        // Only count fields that are occupied, have matching color, and have valid tileId
+        if (feld == null || !feld.istBelegt() || feld.getColor() != color || feld.getTileId() <= 0) {
             return;
         }
 
@@ -479,5 +484,28 @@ public class Stadtplan {
             }
         }
         return null;
+    }
+
+    /**
+     * Counts empty WIESE (light green) spaces for each row from top to bottom.
+     * Used for tiebreaker rule: player with fewer empty spaces in top row wins.
+     * If tied, check second row, etc.
+     * @return array of 11 integers, each representing empty WIESE count for that row (index 0 = top row)
+     */
+    public int[] countEmptyWiesePerRow() {
+        int[] emptyPerRow = new int[11];
+        // Row 10 (y=10) is the top row visually, row 0 (y=0) is at the bottom
+        for (int y = 10; y >= 0; y--) {
+            int emptyCount = 0;
+            for (int x = 0; x < 11; x++) {
+                Feld feld = raster[y][x];
+                if (feld != null && feld.getGelände() == Geländetyp.WIESE && !feld.istBelegt() && !feld.hatFluss()) {
+                    emptyCount++;
+                }
+            }
+            // Map y=10 to index 0 (top row), y=0 to index 10 (bottom row)
+            emptyPerRow[10 - y] = emptyCount;
+        }
+        return emptyPerRow;
     }
 }

@@ -472,55 +472,69 @@ public class GameScreen implements Screen {
 
     private void drawProgressBars() {
         Spieler[] players = spiel.getSpieler();
-        float barWidth = 140;
-        float barHeight = 12;
+        float barWidth = 130;
+        float barHeight = 10;
         float rightX = viewport.getWorldWidth() - 20;
-        float startY = viewport.getWorldHeight() - 180; // Below game info
+        float startY = viewport.getWorldHeight() - 175;
 
         game.batch.end();
 
         // Section title
         game.batch.begin();
         game.font.setColor(Color.CYAN);
-        game.font.getData().setScale(0.9f);
-        glyphLayout.setText(game.font, "Progress");
+        game.font.getData().setScale(0.85f);
+        glyphLayout.setText(game.font, "Progress to Victory");
         game.font.draw(game.batch, glyphLayout, rightX - glyphLayout.width, startY);
         game.batch.end();
 
+        float currentY = startY - 25;
+
         for (int i = 0; i < 2; i++) {
             Spieler player = players[i];
-            float y = startY - 30 - (i * 45);
 
-            // Draw progress bar background first
+            // Draw player name
+            game.batch.begin();
+            game.font.setColor(i == 0 ? new Color(0.4f, 0.7f, 1f, 1f) : new Color(1f, 0.6f, 0.3f, 1f));
+            game.font.getData().setScale(0.75f);
+            String nameText = player.getName();
+            glyphLayout.setText(game.font, nameText);
+            game.font.draw(game.batch, nameText, rightX - glyphLayout.width, currentY);
+            game.batch.end();
+
+            currentY -= 18;
+
+            // Draw progress bar background
             float barX = rightX - barWidth;
             game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             game.shapeRenderer.setColor(Color.DARK_GRAY);
-            game.shapeRenderer.rect(barX, y - 15, barWidth, barHeight);
+            game.shapeRenderer.rect(barX, currentY - 5, barWidth, barHeight);
 
             // Draw progress bar fill
             float fillWidth = (player.getProgressPoints() / 100f) * barWidth;
             if (i == 0) {
-                game.shapeRenderer.setColor(new Color(0.2f, 0.6f, 0.9f, 1f)); // Blue for player 1
+                game.shapeRenderer.setColor(new Color(0.3f, 0.6f, 0.9f, 1f));
             } else {
-                game.shapeRenderer.setColor(new Color(0.9f, 0.4f, 0.2f, 1f)); // Orange for player 2
+                game.shapeRenderer.setColor(new Color(0.9f, 0.5f, 0.2f, 1f));
             }
-            game.shapeRenderer.rect(barX, y - 15, fillWidth, barHeight);
+            game.shapeRenderer.rect(barX, currentY - 5, fillWidth, barHeight);
             game.shapeRenderer.end();
 
             // Draw progress bar border
             game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
             game.shapeRenderer.setColor(Color.WHITE);
-            game.shapeRenderer.rect(barX, y - 15, barWidth, barHeight);
+            game.shapeRenderer.rect(barX, currentY - 5, barWidth, barHeight);
             game.shapeRenderer.end();
 
-            // Draw player name and progress text above the bar
+            // Draw progress value next to bar
             game.batch.begin();
             game.font.setColor(Color.WHITE);
-            game.font.getData().setScale(0.8f);
-            String progressText = player.getName() + ": " + player.getProgressPoints() + "/100";
+            game.font.getData().setScale(0.7f);
+            String progressText = player.getProgressPoints() + "/100";
             glyphLayout.setText(game.font, progressText);
-            game.font.draw(game.batch, progressText, rightX - glyphLayout.width, y);
+            game.font.draw(game.batch, progressText, barX - glyphLayout.width - 5, currentY + 3);
             game.batch.end();
+
+            currentY -= 20;
         }
 
         game.batch.begin();
@@ -707,10 +721,33 @@ public class GameScreen implements Screen {
             }
         }
         game.shapeRenderer.end();
-        
-        // Debug coordinates removed for normal play; re-enable if needed
+
+        // Draw stickers (Brunnen, trees, rocks added by sticker placement)
+        drawStickers(stadtplan);
     }
-    
+
+    private void drawStickers(Stadtplan stadtplan) {
+        for (io.github.myCity.model.Sticker sticker : stadtplan.getSticker()) {
+            io.github.myCity.model.Position pos = sticker.getPos();
+            float x = gridStartX + pos.getX() * TILE_SIZE;
+            float y = gridStartY + pos.getY() * TILE_SIZE;
+
+            if (sticker.getTyp() == io.github.myCity.model.StickerTyp.BRUNNEN) {
+                // Draw Brunnen (well) as a cyan/blue circle
+                game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+                game.shapeRenderer.setColor(new Color(0.2f, 0.7f, 0.9f, 1f));
+                game.shapeRenderer.circle(x + TILE_SIZE / 2, y + TILE_SIZE / 2, TILE_SIZE / 3);
+                game.shapeRenderer.end();
+
+                // Draw border
+                game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+                game.shapeRenderer.setColor(Color.WHITE);
+                game.shapeRenderer.circle(x + TILE_SIZE / 2, y + TILE_SIZE / 2, TILE_SIZE / 3);
+                game.shapeRenderer.end();
+            }
+        }
+    }
+
     private Color getColorForBuildingColor(BuildingColor buildingColor) {
         switch (buildingColor) {
             case RED:
