@@ -93,43 +93,45 @@ public class Plättchen {
     // ========== FACTORY METHODS ==========
 
     /**
-     * Erstellt die Basis-Plättchen für ein Kapitel
+     * Erstellt die Basis-Plättchen für ein Kapitel (ohne Farbe)
      */
     public static List<Plättchen> createBasisPlättchen() {
+        return createBasisPlättchen(BuildingColor.NONE);
+    }
+
+    /**
+     * Erstellt die Basis-Plättchen mit einer bestimmten Farbe
+     */
+    public static List<Plättchen> createBasisPlättchen(BuildingColor color) {
         List<Plättchen> pieces = new ArrayList<>();
 
-        pieces.add(new Plättchen(1, new boolean[][] { { true, true } }));
-        pieces.add(new Plättchen(2, new boolean[][] { { true, true, true, true } }));
-        pieces.add(new Plättchen(3, new boolean[][] { { false, true, false }, { true, true, true } }));
-        pieces.add(new Plättchen(4, new boolean[][] { { true, false }, { true, true } }));
-        pieces.add(new Plättchen(5, new boolean[][] { { true, false, false }, { true, true, true } }));
-        pieces.add(new Plättchen(6, new boolean[][] { { true, true }, { true, true } }));
-        pieces.add(new Plättchen(7, new boolean[][] { { true, true, false }, { false, true, true } }));
-        pieces.add(new Plättchen(8, new boolean[][] { {true, false, true}, {true, true, true}}));
+        pieces.add(new Plättchen(1, new boolean[][] { { true, true } }, color));
+        pieces.add(new Plättchen(2, new boolean[][] { { true, true, true, true } }, color));
+        pieces.add(new Plättchen(3, new boolean[][] { { false, true, false }, { true, true, true } }, color));
+        pieces.add(new Plättchen(4, new boolean[][] { { true, false }, { true, true } }, color));
+        pieces.add(new Plättchen(5, new boolean[][] { { true, false, false }, { true, true, true } }, color));
+        pieces.add(new Plättchen(6, new boolean[][] { { true, true }, { true, true } }, color));
+        pieces.add(new Plättchen(7, new boolean[][] { { true, true, false }, { false, true, true } }, color));
+        pieces.add(new Plättchen(8, new boolean[][] { { true, false, true }, { true, true, true } }, color));
 
         return pieces;
     }
 
     /**
-     * Erstellt genau 24 Plättchen für ein komplettes Kapitel
+     * Erstellt genau 24 Plättchen für ein komplettes Kapitel.
+     * 8 blaue, 8 gelbe und 8 rote Plättchen.
      */
     public static List<Plättchen> create24Plättchen() {
         List<Plättchen> plättchen = new ArrayList<>();
-        List<Plättchen> basis = createBasisPlättchen();
 
-        int[] anzahl = { 3, 3, 3, 3, 3, 3, 3, 3 }; // Gesamt: 24
+        // 8 blaue Plättchen
+        plättchen.addAll(createBasisPlättchen(BuildingColor.BLUE));
 
-        for (int i = 0; i < basis.size(); i++) {
-            Plättchen original = basis.get(i);
-            for (int j = 0; j < anzahl[i]; j++) {
-                boolean[][] originalForm = original.getForm();
-                boolean[][] neueForm = new boolean[originalForm.length][];
-                for (int k = 0; k < originalForm.length; k++) {
-                    neueForm[k] = originalForm[k].clone();
-                }
-                plättchen.add(new Plättchen(original.getId(), neueForm));
-            }
-        }
+        // 8 gelbe Plättchen
+        plättchen.addAll(createBasisPlättchen(BuildingColor.YELLOW));
+
+        // 8 rote Plättchen
+        plättchen.addAll(createBasisPlättchen(BuildingColor.RED));
 
         return plättchen;
     }

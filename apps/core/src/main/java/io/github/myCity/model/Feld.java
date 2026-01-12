@@ -15,12 +15,14 @@ public class Feld {
     public boolean flussLinks;
     public boolean flussRechts;
     private BuildingColor color;
+    private int tileId; // Tracks which tile (1-8) this field belongs to
     private final List<Sticker> stickers = new ArrayList<>();
 
     public Feld(Geländetyp gelände) {
         this.gelände = gelände;
         this.belegt = false;
         this.color = BuildingColor.NONE;
+        this.tileId = 0;
     }
 
     public Geländetyp getGelände() {
@@ -45,6 +47,14 @@ public class Feld {
 
     public void setColor(BuildingColor color) {
         this.color = color;
+    }
+
+    public int getTileId() {
+        return tileId;
+    }
+
+    public void setTileId(int tileId) {
+        this.tileId = tileId;
     }
 
     public boolean hatFluss() {

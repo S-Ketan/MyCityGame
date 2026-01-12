@@ -308,19 +308,8 @@ public class GameScreen implements Screen {
         int chapterNumber = spiel.getAktuellesKapitelNummer();
         Gdx.app.log("Game", "Chapter " + chapterNumber + " completed!");
 
-        // Calculate bonuses for both players and store them
-        int[] bonuses = new int[2];
-        for (int i = 0; i < 2; i++) {
-            Spieler player = spiel.getSpieler()[i];
-            bonuses[i] = spiel.getAktuellesKapitel().berechneBonus(player.getStadtplan());
-            player.setPunktzahl(player.getPunktzahl() + bonuses[i]);
-
-            Gdx.app.log("Game", player.getName() + " bonus: " + bonuses[i] +
-                       ", Total score: " + player.getPunktzahl());
-        }
-
-        // Transition to Chapter End Screen instead of showing overlay
-        game.setScreen(new ChapterEndScreen(game, spiel, chapterNumber, bonuses));
+        // Transition to Chapter End Screen
+        game.setScreen(new ChapterEndScreen(game, spiel, chapterNumber));
     }
 
     private void skipTile() {
@@ -419,13 +408,14 @@ public class GameScreen implements Screen {
 
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
-        
+
         if (showChapterEndDialog) {
             drawChapterEndDialog();
         } else {
             drawGameUI();
+            drawProgressBars();
         }
-        
+
         game.batch.end();
 
         // Draw buttons
@@ -466,10 +456,75 @@ public class GameScreen implements Screen {
         String tileText = "Tiles: " + currentPlayerTileCount + "/24";
         glyphLayout.setText(game.font, tileText);
         game.font.draw(game.batch, glyphLayout, rightX - glyphLayout.width, currentY);
+        currentY -= 30;
+
+        // Current tile color indicator
+        if (currentCard != null && currentCard.getPlättchen() != null) {
+            String colorText = "Color: " + currentCard.getPlättchen().getColor().name();
+            glyphLayout.setText(game.font, colorText);
+            game.font.draw(game.batch, glyphLayout, rightX - glyphLayout.width, currentY);
+        }
 
         // Button labels
         drawButtonLabel("Rotate", rotateButton);
         drawButtonLabel("Skip", skipButton);
+    }
+
+    private void drawProgressBars() {
+        Spieler[] players = spiel.getSpieler();
+        float barWidth = 140;
+        float barHeight = 12;
+        float rightX = viewport.getWorldWidth() - 20;
+        float startY = viewport.getWorldHeight() - 180; // Below game info
+
+        game.batch.end();
+
+        // Section title
+        game.batch.begin();
+        game.font.setColor(Color.CYAN);
+        game.font.getData().setScale(0.9f);
+        glyphLayout.setText(game.font, "Progress");
+        game.font.draw(game.batch, glyphLayout, rightX - glyphLayout.width, startY);
+        game.batch.end();
+
+        for (int i = 0; i < 2; i++) {
+            Spieler player = players[i];
+            float y = startY - 30 - (i * 45);
+
+            // Draw progress bar background first
+            float barX = rightX - barWidth;
+            game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            game.shapeRenderer.setColor(Color.DARK_GRAY);
+            game.shapeRenderer.rect(barX, y - 15, barWidth, barHeight);
+
+            // Draw progress bar fill
+            float fillWidth = (player.getProgressPoints() / 100f) * barWidth;
+            if (i == 0) {
+                game.shapeRenderer.setColor(new Color(0.2f, 0.6f, 0.9f, 1f)); // Blue for player 1
+            } else {
+                game.shapeRenderer.setColor(new Color(0.9f, 0.4f, 0.2f, 1f)); // Orange for player 2
+            }
+            game.shapeRenderer.rect(barX, y - 15, fillWidth, barHeight);
+            game.shapeRenderer.end();
+
+            // Draw progress bar border
+            game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+            game.shapeRenderer.setColor(Color.WHITE);
+            game.shapeRenderer.rect(barX, y - 15, barWidth, barHeight);
+            game.shapeRenderer.end();
+
+            // Draw player name and progress text above the bar
+            game.batch.begin();
+            game.font.setColor(Color.WHITE);
+            game.font.getData().setScale(0.8f);
+            String progressText = player.getName() + ": " + player.getProgressPoints() + "/100";
+            glyphLayout.setText(game.font, progressText);
+            game.font.draw(game.batch, progressText, rightX - glyphLayout.width, y);
+            game.batch.end();
+        }
+
+        game.batch.begin();
+        game.font.getData().setScale(1.0f);
     }
 
     private void drawChapterEndDialog() {
@@ -559,12 +614,16 @@ public class GameScreen implements Screen {
             }
         }
         
-        // Draw tile with color indicating validity
+        // Draw tile with color indicating validity when dragging, or actual tile color when not
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        
-        Color tileColor = isDragging ? 
-            (wouldBeValid ? new Color(0.3f, 0.8f, 0.3f, 0.8f) : new Color(0.8f, 0.3f, 0.3f, 0.8f)) : 
-            Color.ORANGE;
+
+        Color tileColor;
+        if (isDragging) {
+            tileColor = wouldBeValid ? new Color(0.3f, 0.8f, 0.3f, 0.8f) : new Color(0.8f, 0.3f, 0.3f, 0.8f);
+        } else {
+            // Show actual tile color
+            tileColor = getColorForBuildingColor(plättchen.getColor());
+        }
         
         game.shapeRenderer.setColor(tileColor);
         for (int i = 0; i < form.length; i++) {

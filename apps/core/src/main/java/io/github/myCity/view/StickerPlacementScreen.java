@@ -198,6 +198,10 @@ public class StickerPlacementScreen implements Screen {
             spiel.resetEpisodeTracking();
             spiel.kapitelLaden(4, true);
             game.setScreen(new GameScreen(game, spiel));
+        } else if (nextEpisode == 3) {
+            // Before Episode 3, each player places a Brunnen
+            Gdx.app.log("StickerPlacement", "Going to Brunnen placement before Episode 3");
+            game.setScreen(new BrunnenPlacementScreen(game, spiel));
         } else {
             // Continue to next episode in chapter 1
             Gdx.app.log("StickerPlacement", "Loading Episode " + nextEpisode);

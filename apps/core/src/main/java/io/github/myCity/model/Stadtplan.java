@@ -215,6 +215,7 @@ public class Stadtplan {
     public void plättchenPlatzieren(Plättchen plättchen, Position pos) {
         boolean[][] form = plättchen.getForm();
         BuildingColor color = plättchen.getColor();
+        int tileId = plättchen.getId();
         for (int i = 0; i < form.length; i++) {
             for (int j = 0; j < form[i].length; j++) {
                 if (form[i][j]) {
@@ -223,7 +224,8 @@ public class Stadtplan {
                     if (weltX >= 0 && weltX < 11 && weltY >= 0 && weltY < 11) {
                         Feld feld = getFeld(weltX, weltY);
                         feld.setBelegt(true);
-                        feld.setColor(color); 
+                        feld.setColor(color);
+                        feld.setTileId(tileId);
                     }
                 }
             }
@@ -339,8 +341,143 @@ public class Stadtplan {
                 if (feld != null) {
                     feld.setBelegt(false);
                     feld.setColor(BuildingColor.NONE);
+                    feld.setTileId(0);
                 }
             }
         }
+    }
+
+    /**
+     * Episode 2 Rule: Calculates bonus points for connected same-color tiles.
+     * For each color (Blue, Yellow, Red), finds the largest connected group.
+     * Counts TILES (Plättchen), not fields. Each tile counts as 1 point.
+     * Returns the SUM of the largest connected group for each color.
+     * Maximum possible: 8 + 8 + 8 = 24 points (if all tiles of each color are connected).
+     */
+    public int berechneVerbundeneFarbenBonus() {
+        int totalBonus = 0;
+
+        // Check for each color
+        BuildingColor[] colors = {BuildingColor.BLUE, BuildingColor.YELLOW, BuildingColor.RED};
+
+        for (BuildingColor color : colors) {
+            boolean[][] visited = new boolean[11][11];
+            int maxConnectedForColor = 0;
+
+            for (int y = 0; y < 11; y++) {
+                for (int x = 0; x < 11; x++) {
+                    Feld feld = raster[y][x];
+                    if (feld != null && feld.istBelegt() && feld.getColor() == color && !visited[y][x]) {
+                        // Count unique tiles in this connected group
+                        java.util.Set<Integer> uniqueTileIds = new java.util.HashSet<>();
+                        countConnectedTiles(x, y, color, visited, uniqueTileIds);
+                        int tileCount = uniqueTileIds.size();
+                        if (tileCount > maxConnectedForColor) {
+                            maxConnectedForColor = tileCount;
+                        }
+                    }
+                }
+            }
+
+            // Add the largest connected group for this color to total
+            totalBonus += maxConnectedForColor;
+        }
+
+        return totalBonus;
+    }
+
+    /**
+     * Helper method for flood-fill counting of connected same-color tiles.
+     * Collects unique tile IDs in the connected group.
+     */
+    private void countConnectedTiles(int x, int y, BuildingColor color, boolean[][] visited, java.util.Set<Integer> uniqueTileIds) {
+        if (x < 0 || x >= 11 || y < 0 || y >= 11) {
+            return;
+        }
+        if (visited[y][x]) {
+            return;
+        }
+
+        Feld feld = raster[y][x];
+        if (feld == null || !feld.istBelegt() || feld.getColor() != color) {
+            return;
+        }
+
+        visited[y][x] = true;
+        uniqueTileIds.add(feld.getTileId());
+
+        // Check all 4 neighbors (up, down, left, right)
+        countConnectedTiles(x + 1, y, color, visited, uniqueTileIds);
+        countConnectedTiles(x - 1, y, color, visited, uniqueTileIds);
+        countConnectedTiles(x, y + 1, color, visited, uniqueTileIds);
+        countConnectedTiles(x, y - 1, color, visited, uniqueTileIds);
+    }
+
+    /**
+     * Episode 3 Rule: Checks if all 4 corners around a Brunnen are covered with tiles.
+     * Returns 4 if all corners are covered, 0 otherwise.
+     */
+    public int berechneBrunnenBonus() {
+        for (Sticker s : sticker) {
+            if (s.getTyp() == StickerTyp.BRUNNEN) {
+                Position pos = s.getPos();
+                int x = pos.getX();
+                int y = pos.getY();
+
+                // Check all 4 diagonal corners around the Brunnen
+                boolean allCornersOccupied = true;
+
+                // Top-left, Top-right, Bottom-left, Bottom-right
+                int[][] corners = {
+                    {x - 1, y - 1}, {x + 1, y - 1},
+                    {x - 1, y + 1}, {x + 1, y + 1}
+                };
+
+                for (int[] corner : corners) {
+                    int cx = corner[0];
+                    int cy = corner[1];
+
+                    if (cx < 0 || cx >= 11 || cy < 0 || cy >= 11) {
+                        allCornersOccupied = false;
+                        break;
+                    }
+
+                    Feld feld = raster[cy][cx];
+                    if (feld == null || !feld.istBelegt()) {
+                        allCornersOccupied = false;
+                        break;
+                    }
+                }
+
+                if (allCornersOccupied) {
+                    return 4;
+                }
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Checks if this Stadtplan has a Brunnen sticker.
+     */
+    public boolean hasBrunnen() {
+        for (Sticker s : sticker) {
+            if (s.getTyp() == StickerTyp.BRUNNEN) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the position of the Brunnen sticker, if any.
+     */
+    public Position getBrunnenPosition() {
+        for (Sticker s : sticker) {
+            if (s.getTyp() == StickerTyp.BRUNNEN) {
+                return s.getPos();
+            }
+        }
+        return null;
     }
 }

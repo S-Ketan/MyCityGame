@@ -4,11 +4,13 @@ public class Spieler {
     private static final int START_PUNKTZAHL = 10;
     private static final int MIN_PUNKTZAHL = 0;
     private static final int MAX_PUNKTZAHL = 50;
+    private static final int MAX_PROGRESS_POINTS = 100;
 
     private final String name;
     private int punktzahl;
     private final Stadtplan stadtplan;
     private int übersprungeneGebäude;
+    private int progressPoints;
 
     public Spieler(String name) {
         if (name == null || name.trim().isEmpty()) {
@@ -18,6 +20,7 @@ public class Spieler {
         this.punktzahl = START_PUNKTZAHL;
         this.stadtplan = new Stadtplan();
         this.übersprungeneGebäude = 0;
+        this.progressPoints = 0;
     }
 
     public String getName() {
@@ -97,6 +100,28 @@ public class Spieler {
      */
     public void resetÜbersprungeneGebäude() {
         this.übersprungeneGebäude = 0;
+    }
+
+    public int getProgressPoints() {
+        return progressPoints;
+    }
+
+    public void setProgressPoints(int progressPoints) {
+        this.progressPoints = Math.max(0, Math.min(MAX_PROGRESS_POINTS, progressPoints));
+    }
+
+    /**
+     * Adds progress points (capped at 100).
+     */
+    public void addProgressPoints(int points) {
+        this.progressPoints = Math.min(MAX_PROGRESS_POINTS, this.progressPoints + points);
+    }
+
+    /**
+     * Checks if player has won the entire game (reached 100 progress points).
+     */
+    public boolean hasWonGame() {
+        return progressPoints >= MAX_PROGRESS_POINTS;
     }
 
     @Override

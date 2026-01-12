@@ -29,7 +29,11 @@ public class ChapterEndScreen implements Screen {
     private final Main game;
     private final Spiel spiel;
     private final int chapterNumber;
-    private final int[] bonuses;
+    private final int[] progressAwarded;
+
+    // Episode bonuses (calculated in constructor)
+    private final int[] colorBonus;
+    private final int[] brunnenBonus;
 
     private final OrthographicCamera camera;
     private final Viewport viewport;
@@ -37,7 +41,7 @@ public class ChapterEndScreen implements Screen {
     private Skin skin;
 
     private static final float VIRTUAL_WIDTH = 850;
-    private static final float VIRTUAL_HEIGHT = 650;
+    private static final float VIRTUAL_HEIGHT = 700;
 
     /**
      * Creates a new chapter end screen.
@@ -45,13 +49,36 @@ public class ChapterEndScreen implements Screen {
      * @param game The main game instance
      * @param spiel The game state
      * @param chapterNumber The chapter that was just completed
-     * @param bonuses Array of bonus points for each player [player1Bonus, player2Bonus]
      */
-    public ChapterEndScreen(Main game, Spiel spiel, int chapterNumber, int[] bonuses) {
+    public ChapterEndScreen(Main game, Spiel spiel, int chapterNumber) {
         this.game = game;
         this.spiel = spiel;
         this.chapterNumber = chapterNumber;
-        this.bonuses = bonuses;
+
+        Spieler[] players = spiel.getSpieler();
+
+        // Calculate and apply episode bonuses BEFORE awarding progress points
+        colorBonus = new int[2];
+        brunnenBonus = new int[2];
+
+        // Episode 2+: Connected color bonus
+        if (chapterNumber >= 2) {
+            colorBonus[0] = players[0].getStadtplan().berechneVerbundeneFarbenBonus();
+            colorBonus[1] = players[1].getStadtplan().berechneVerbundeneFarbenBonus();
+            players[0].setPunktzahl(players[0].getPunktzahl() + colorBonus[0]);
+            players[1].setPunktzahl(players[1].getPunktzahl() + colorBonus[1]);
+        }
+
+        // Episode 3: Brunnen bonus
+        if (chapterNumber == 3) {
+            brunnenBonus[0] = players[0].getStadtplan().berechneBrunnenBonus();
+            brunnenBonus[1] = players[1].getStadtplan().berechneBrunnenBonus();
+            players[0].setPunktzahl(players[0].getPunktzahl() + brunnenBonus[0]);
+            players[1].setPunktzahl(players[1].getPunktzahl() + brunnenBonus[1]);
+        }
+
+        // Award progress points AFTER all bonuses are applied
+        this.progressAwarded = spiel.awardProgressPoints();
 
         camera = new OrthographicCamera();
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
@@ -140,11 +167,6 @@ public class ChapterEndScreen implements Screen {
         titleLabel.setFontScale(2.0f);
         mainTable.add(titleLabel).colspan(3).padBottom(30).row();
 
-        // Bonus description
-        String bonusDesc = spiel.getAktuellesKapitel().getBonus().getBonusBeschreibung();
-        Label bonusDescLabel = new Label("Bonus: " + bonusDesc, skin, "header");
-        mainTable.add(bonusDescLabel).colspan(3).padBottom(20).row();
-
         // Create score tables for both players
         Table scoresTable = new Table();
 
@@ -183,17 +205,20 @@ public class ChapterEndScreen implements Screen {
         int skipped2 = -players[1].getÜbersprungeneGebäude();
         addScoreRow(scoresTable, "Skipped Buildings", skipped1, skipped2, "negative");
 
-        // Add separator
-        scoresTable.add(new Label("-------------------", skin)).colspan(3).row();
+        // Episode 2+: Connected color bonus (pre-calculated in constructor)
+        if (chapterNumber >= 2) {
+            addScoreRow(scoresTable, "Connected Colors", colorBonus[0], colorBonus[1], "positive");
+        }
 
-        // Chapter bonus
-        addScoreRow(scoresTable, "Chapter Bonus", bonuses[0], bonuses[1],
-                    bonuses[0] >= 0 ? "positive" : "negative");
+        // Episode 3: Brunnen bonus (pre-calculated in constructor)
+        if (chapterNumber == 3) {
+            addScoreRow(scoresTable, "Brunnen Bonus", brunnenBonus[0], brunnenBonus[1], "positive");
+        }
 
         // Add separator
         scoresTable.add(new Label("===================", skin)).colspan(3).row();
 
-        // Total score
+        // Total score (already includes bonuses applied in constructor)
         addScoreRow(scoresTable, "TOTAL SCORE", players[0].getPunktzahl(),
                     players[1].getPunktzahl(), "total");
 
@@ -221,6 +246,32 @@ public class ChapterEndScreen implements Screen {
         Label resultLabel = new Label(resultText, skin, "header");
         resultLabel.setFontScale(1.2f);
         mainTable.add(resultLabel).colspan(3).padBottom(15).row();
+
+        // Progress points section
+        mainTable.add(new Label("--- Progress Points ---", skin, "header")).colspan(3).padTop(10).padBottom(5).row();
+
+        // Progress points awarded this chapter
+        Table progressTable = new Table();
+        progressTable.add(new Label("Awarded:", skin)).width(200).pad(5).left();
+        progressTable.add(new Label("+" + progressAwarded[0], skin, "positive")).width(150).pad(5).center();
+        progressTable.add(new Label("+" + progressAwarded[1], skin, "positive")).width(150).pad(5).center();
+        progressTable.row();
+
+        // Total progress
+        progressTable.add(new Label("Total Progress:", skin)).width(200).pad(5).left();
+        progressTable.add(new Label(players[0].getProgressPoints() + "/100", skin, "total")).width(150).pad(5).center();
+        progressTable.add(new Label(players[1].getProgressPoints() + "/100", skin, "total")).width(150).pad(5).center();
+        progressTable.row();
+
+        mainTable.add(progressTable).colspan(3).padBottom(15).row();
+
+        // Check for game winner
+        Spieler gameWinner = spiel.checkForGameWinner();
+        if (gameWinner != null) {
+            Label gameWinnerLabel = new Label(gameWinner.getName() + " WINS THE GAME!", skin, "title");
+            gameWinnerLabel.setFontScale(1.5f);
+            mainTable.add(gameWinnerLabel).colspan(3).padBottom(15).row();
+        }
 
         // For episodes 1-3: Show sticker placement info
         if (chapterNumber >= 1 && chapterNumber <= 3) {
@@ -298,6 +349,15 @@ public class ChapterEndScreen implements Screen {
     }
 
     private void startNextChapter() {
+        // Check if someone won the game
+        Spieler gameWinner = spiel.checkForGameWinner();
+        if (gameWinner != null) {
+            Gdx.app.log("ChapterEnd", gameWinner.getName() + " has won the game with 100 progress points!");
+            spiel.endpunkteBerechnen();
+            game.setScreen(new MenuScreen(game));
+            return;
+        }
+
         int nextChapter = chapterNumber + 1;
 
         if (nextChapter > 24) {

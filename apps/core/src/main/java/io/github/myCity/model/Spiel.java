@@ -316,6 +316,70 @@ public class Spiel {
         System.out.println();
     }
 
+    /**
+     * Calculates and awards progress points at the end of a chapter.
+     * - Winner gets 2 progress points
+     * - Loser gets 1 progress point
+     * - If tie, both get 1 progress point
+     * - Bonus: +1 progress point if player reached 50 scoring points
+     *
+     * @return int array with [player1ProgressAwarded, player2ProgressAwarded]
+     */
+    public int[] awardProgressPoints() {
+        int[] awarded = new int[2];
+        int score1 = spieler[0].getPunktzahl();
+        int score2 = spieler[1].getPunktzahl();
+
+        // Determine winner and award base progress points
+        if (score1 > score2) {
+            // Player 1 wins
+            awarded[0] = 2;
+            awarded[1] = 1;
+        } else if (score2 > score1) {
+            // Player 2 wins
+            awarded[0] = 1;
+            awarded[1] = 2;
+        } else {
+            // Tie - both get 1 point
+            awarded[0] = 1;
+            awarded[1] = 1;
+        }
+
+        // Bonus: +1 if player reached 50 scoring points
+        if (score1 >= 50) {
+            awarded[0] += 1;
+        }
+        if (score2 >= 50) {
+            awarded[1] += 1;
+        }
+
+        // Apply progress points to players
+        spieler[0].addProgressPoints(awarded[0]);
+        spieler[1].addProgressPoints(awarded[1]);
+
+        System.out.println("📊 Progress points awarded:");
+        System.out.println("   " + spieler[0].getName() + ": +" + awarded[0] +
+                         " (Total: " + spieler[0].getProgressPoints() + "/100)");
+        System.out.println("   " + spieler[1].getName() + ": +" + awarded[1] +
+                         " (Total: " + spieler[1].getProgressPoints() + "/100)");
+
+        return awarded;
+    }
+
+    /**
+     * Checks if any player has won the entire game (reached 100 progress points).
+     * @return the winning player, or null if no winner yet
+     */
+    public Spieler checkForGameWinner() {
+        if (spieler[0].hasWonGame()) {
+            return spieler[0];
+        }
+        if (spieler[1].hasWonGame()) {
+            return spieler[1];
+        }
+        return null;
+    }
+
     // ========== SAVE/LOAD ==========
     public void resetEpisodeTracking() {
         mineDepthPlayer1 = 0;

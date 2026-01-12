@@ -4,5 +4,6 @@ public enum StickerTyp {
     FELS_HINZUFÜGEN,
     BAUM_HINZUFÜGEN,
     BONUSFELD,
-    STRUKTURSTICKER
+    STRUKTURSTICKER,
+    BRUNNEN
 }
