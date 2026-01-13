@@ -11,11 +11,15 @@ public class PlättchenDeck {
 
     private final List<Gebäudekarte> karten;
     private final List<Gebäudekarte> ablagestapel;
+    private final List<Gebäudekarte> originalOrder;
 
     public PlättchenDeck(List<Gebäudekarte> karten) {
         this.karten = new ArrayList<>(karten);
         this.ablagestapel = new ArrayList<>();
+        this.originalOrder = new ArrayList<>();
         mischen();
+        // Save the shuffled order so we can restore it for player 2
+        this.originalOrder.addAll(this.karten);
     }
 
     /**
@@ -50,5 +54,15 @@ public class PlättchenDeck {
 
     public int verbleibendeKarten() {
         return karten.size();
+    }
+
+    /**
+     * Resets the deck to the original shuffled order.
+     * Used when switching to player 2 so they get the same tile sequence.
+     */
+    public void reset() {
+        karten.clear();
+        ablagestapel.clear();
+        karten.addAll(originalOrder);
     }
 }

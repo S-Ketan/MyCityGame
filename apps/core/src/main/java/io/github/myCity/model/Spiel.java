@@ -292,6 +292,15 @@ public class Spiel {
         aktuellerSpielerIndex = (aktuellerSpielerIndex + 1) % 2;
     }
 
+    /**
+     * Resets the deck for the next player without creating a new chapter.
+     * The same shuffled order is preserved so player 2 gets the same tiles.
+     */
+    public void resetDeckForNextPlayer() {
+        aktuellesKapitel.resetDeck();
+        erstesTile[aktuellerSpielerIndex] = true;
+    }
+
     // ========== SCORING ==========
 
     public void endpunkteBerechnen() {

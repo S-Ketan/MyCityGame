@@ -88,7 +88,7 @@ public class Spieler {
     public void plaettchenUeberspringen() {
         // Track skipped tiles for score calculation (-1 point each)
         übersprungeneGebäude++;
-        System.out.println(name + " hat das Plättchen übersprungen.");
+        //System.out.println(name + " hat das Plättchen übersprungen.");
     }
 
     public int getÜbersprungeneGebäude() {

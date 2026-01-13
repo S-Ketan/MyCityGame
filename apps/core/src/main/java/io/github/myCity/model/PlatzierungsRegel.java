@@ -8,13 +8,13 @@ public class PlatzierungsRegel {
             Position pos, boolean erstes) {
         // Null checks
         if (plättchen == null || stadtplan == null || pos == null) {
-            System.out.println("❌ Rule violation: Null parameter");
+            //System.out.println("❌ Rule violation: Null parameter");
             return false;
         }
 
         // Rule 1: Check boundaries and overlaps (for all tiles)
         if (!istInGrenzen(plättchen, stadtplan, pos)) {
-            System.out.println("❌ Rule violation: Out of bounds or overlapping");
+            //System.out.println("❌ Rule violation: Out of bounds or overlapping");
             return false;
         }
 
@@ -22,13 +22,13 @@ public class PlatzierungsRegel {
         if (erstes) {
             // Rule 2: First tile must be adjacent to river
             if (!regelErstesGebäude(plättchen, stadtplan, pos)) {
-                System.out.println("❌ Rule violation: First tile must be adjacent to river");
+                //System.out.println("❌ Rule violation: First tile must be adjacent to river");
                 return false;
             }
         } else {
             // Rule 3: Subsequent tiles must connect to existing buildings
             if (!regelAnlegenAnGebäude(plättchen, stadtplan, pos)) {
-                System.out.println("❌ Rule violation: Tile must connect to existing buildings");
+                //System.out.println("❌ Rule violation: Tile must connect to existing buildings");
                 return false;
             }
         }
@@ -37,19 +37,19 @@ public class PlatzierungsRegel {
 
         // Rule 4: Cannot build on forbidden terrain (rocks, mountains)
         if (!regelKeineBebauung(plättchen, stadtplan, pos)) {
-            System.out.println("❌ Rule violation: Cannot build on this terrain");
+            //System.out.println("❌ Rule violation: Cannot build on this terrain");
             return false;
         }
 
         // Rule 5: Cannot build on rivers (FLUSS terrain type)
         if (!regelNichtAufFluss(plättchen, stadtplan, pos)) {
-            System.out.println("❌ Rule violation: Cannot build on river");
+            //System.out.println("❌ Rule violation: Cannot build on river");
             return false;
         }
 
         // Rule 6: Boundary/marked area restrictions
         if (!regelNichtAufMarkiertenBereich(plättchen, stadtplan, pos)) {
-            System.out.println("❌ Rule violation: Cannot build in marked area");
+            //System.out.println("❌ Rule violation: Cannot build in marked area");
             return false;
         }
 
@@ -97,7 +97,7 @@ public class PlatzierungsRegel {
         boolean[][] form = plättchen.getForm();
         boolean touchesRiver = false;
 
-        System.out.println("🔍 Checking first tile placement at position (" + pos.getX() + ", " + pos.getY() + ")");
+        //System.out.println("🔍 Checking first tile placement at position (" + pos.getX() + ", " + pos.getY() + ")");
 
         // Check each cell of the tile
         for (int i = 0; i < form.length; i++) {
@@ -108,19 +108,19 @@ public class PlatzierungsRegel {
 
                     Feld feld = stadtplan.getFeld(weltX, weltY);
                     if (feld == null) {
-                        System.out.println("  ⚠️ Field at (" + weltX + ", " + weltY + ") is null!");
+                        //System.out.println("  ⚠️ Field at (" + weltX + ", " + weltY + ") is null!");
                         continue;
                     }
 
-                    System.out.println("  📍 Checking field (" + weltX + ", " + weltY + ")");
-                    System.out.println("     Terrain: " + feld.getGelände());
-                    System.out.println("     River edges: Top=" + feld.flussOben + ", Bottom=" + feld.flussUnten +
-                            ", Left=" + feld.flussLinks + ", Right=" + feld.flussRechts);
+                    //System.out.println("  📍 Checking field (" + weltX + ", " + weltY + ")");
+                    //System.out.println("     Terrain: " + feld.getGelände());
+                    //System.out.println("     River edges: Top=" + feld.flussOben + ", Bottom=" + feld.flussUnten +
+                    //        ", Left=" + feld.flussLinks + ", Right=" + feld.flussRechts);
 
                     // If this field has any river edge, it touches the river!
                     if (feld.hatFluss()) {
                         touchesRiver = true;
-                        System.out.println("  ✓ This field touches the river!");
+                        //System.out.println("  ✓ This field touches the river!");
                         break;
                     }
                 }
@@ -130,9 +130,9 @@ public class PlatzierungsRegel {
         }
 
         if (!touchesRiver) {
-            System.out.println("❌ First tile must touch the river (have at least one river edge)!");
+            //System.out.println("❌ First tile must touch the river (have at least one river edge)!");
         } else {
-            System.out.println("✓ First tile touches the river - placement allowed!");
+            //System.out.println("✓ First tile touches the river - placement allowed!");
         }
 
         return touchesRiver;
@@ -210,20 +210,20 @@ public class PlatzierungsRegel {
                     if (feld != null) {
                         Geländetyp terrain = feld.getGelände();
 
-                        System.out.println("  📍 Field (" + weltX + ", " + weltY + ") has terrain: " + terrain);
+                        //System.out.println("  📍 Field (" + weltX + ", " + weltY + ") has terrain: " + terrain);
 
                         // Cannot build on mountains (GEBIRGE) or forest (WALD)
                         // FELS and BAUM are allowed but affect scoring:
                         // - Building on FELS = lose points at end
                         // - NOT building on BAUM = gain points at end
                         if (terrain == Geländetyp.GEBIRGE || terrain == Geländetyp.WALD) {
-                            System.out.println("  ❌ Cannot build on " + terrain + " at (" + weltX + ", " + weltY + ")");
+                            //System.out.println("  ❌ Cannot build on " + terrain + " at (" + weltX + ", " + weltY + ")");
                             return false;
                         }
 
                         if (terrain == Geländetyp.FELS || terrain == Geländetyp.BAUM) {
-                            System.out.println("  ⚠️ Building on " + terrain + " at (" + weltX + ", " + weltY
-                                    + ") - will affect score");
+                            //System.out.println("  ⚠️ Building on " + terrain + " at (" + weltX + ", " + weltY
+                            //        + ") - will affect score");
                         }
                     }
                 }

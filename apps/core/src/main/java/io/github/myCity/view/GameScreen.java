@@ -104,7 +104,7 @@ public class GameScreen implements Screen {
                 
                 Vector2 worldPos = screenToWorld(screenX, screenY);
                 
-                Gdx.app.log("Input", "Touch down at screen (" + screenX + ", " + screenY + ") = world (" + worldPos.x + ", " + worldPos.y + ")");
+                //Gdx.app.log("Input", "Touch down at screen (" + screenX + ", " + screenY + ") = world (" + worldPos.x + ", " + worldPos.y + ")");
                 
                 // Check if chapter end dialog is shown
                 if (showChapterEndDialog) {
@@ -128,7 +128,7 @@ public class GameScreen implements Screen {
                 if (isTileClicked(worldPos)) {
                     isDragging = true;
                     dragOffset.set(worldPos.x - tilePosition.x, worldPos.y - tilePosition.y);
-                    Gdx.app.log("Input", "Started dragging tile. Offset: (" + dragOffset.x + ", " + dragOffset.y + ")");
+                    //Gdx.app.log("Input", "Started dragging tile. Offset: (" + dragOffset.x + ", " + dragOffset.y + ")");
                     return true;
                 }
                 
@@ -152,8 +152,8 @@ public class GameScreen implements Screen {
                 if (isDragging) {
                     isDragging = false;
                     Vector2 worldPos = screenToWorld(screenX, screenY);
-                    Gdx.app.log("Input", "Touch up at world (" + worldPos.x + ", " + worldPos.y + ")");
-                    Gdx.app.log("Input", "Tile position: (" + tilePosition.x + ", " + tilePosition.y + ")");
+                    //Gdx.app.log("Input", "Touch up at world (" + worldPos.x + ", " + worldPos.y + ")");
+                    //Gdx.app.log("Input", "Tile position: (" + tilePosition.x + ", " + tilePosition.y + ")");
                     tryPlaceTile(worldPos);
                     return true;
                 }
@@ -185,7 +185,7 @@ public class GameScreen implements Screen {
                     
                     if (worldPos.x >= cellX && worldPos.x <= cellX + TILE_SIZE &&
                         worldPos.y >= cellY && worldPos.y <= cellY + TILE_SIZE) {
-                        Gdx.app.log("Game", "Tile clicked at cell (" + j + ", " + i + ")");
+                        //Gdx.app.log("Game", "Tile clicked at cell (" + j + ", " + i + ")");
                         return true;
                     }
                 }
@@ -204,9 +204,9 @@ public class GameScreen implements Screen {
         int gridX = Math.round((tilePosition.x - gridStartX) / TILE_SIZE);
         int gridY = Math.round((tilePosition.y - gridStartY) / TILE_SIZE);
         
-        Gdx.app.log("Game", "Tile position in world: (" + tilePosition.x + ", " + tilePosition.y + ")");
-        Gdx.app.log("Game", "Grid start: (" + gridStartX + ", " + gridStartY + ")");
-        Gdx.app.log("Game", "Trying to place tile at grid position: (" + gridX + ", " + gridY + ")");
+        //Gdx.app.log("Game", "Tile position in world: (" + tilePosition.x + ", " + tilePosition.y + ")");
+        //Gdx.app.log("Game", "Grid start: (" + gridStartX + ", " + gridStartY + ")");
+        //Gdx.app.log("Game", "Trying to place tile at grid position: (" + gridX + ", " + gridY + ")");
         
         // Check if tile would be mostly outside the grid - if so, return to original position
         boolean[][] form = plättchen.getForm();
@@ -229,7 +229,7 @@ public class GameScreen implements Screen {
         // If more than half the cells are outside, don't try to place
         if (validCells < totalCells / 2) {
             resetTilePosition();
-            Gdx.app.log("Game", "Tile mostly out of bounds (" + validCells + "/" + totalCells + " cells valid)");
+            //Gdx.app.log("Game", "Tile mostly out of bounds (" + validCells + "/" + totalCells + " cells valid)");
             return;
         }
         
@@ -246,7 +246,7 @@ public class GameScreen implements Screen {
         if (isValid) {
             // Place the tile
             spiel.getCurrentPlayer().plaettchenLegen(plättchen, pos);
-            Gdx.app.log("Game", "✓ Tile placed successfully at (" + gridX + ", " + gridY + ")");
+            //Gdx.app.log("Game", "✓ Tile placed successfully at (" + gridX + ", " + gridY + ")");
 
             // Update score to reflect placement
             spiel.refreshScore(spiel.getAktuellerSpielerIndex());
@@ -265,7 +265,7 @@ public class GameScreen implements Screen {
         } else {
             // Invalid placement - return tile to original position
             resetTilePosition();
-            Gdx.app.log("Game", "✗ Invalid tile placement");
+            //Gdx.app.log("Game", "✗ Invalid tile placement");
         }
     }
 
@@ -281,21 +281,20 @@ public class GameScreen implements Screen {
         if (currentPlayerIndex == 0) {
             // Player 1 finished, now it's Player 2's turn
             Gdx.app.log("Game", "Switching to Player 2...");
-            
+
             // Reset deck WITHOUT loading a new chapter
             // We need to reset the deck to have the same 24 tiles for player 2
             currentPlayerTileCount = 0;
             isFirstTileForPlayer = true;
-            
-            // Switch to player 2 BEFORE loading the deck
+
+            // Switch to player 2 BEFORE resetting the deck
             spiel.wechselSpieler();
-            
-            // Now reload the SAME chapter for player 2
-            int currentChapter = spiel.getAktuellesKapitelNummer();
-            spiel.kapitelLaden(currentChapter, false);
+
+            // Reset the deck to the original order for player 2 (same tiles as player 1)
+            spiel.resetDeckForNextPlayer();
             currentCard = spiel.getAktuellesKapitel().zieheKarte();
             resetTilePosition();
-            
+
             Gdx.app.log("Game", "Now it's " + spiel.getCurrentPlayer().getName() + "'s turn with the same deck!");
         } else {
             // Player 2 finished, chapter is complete
@@ -315,7 +314,7 @@ public class GameScreen implements Screen {
     private void skipTile() {
         if (currentCard == null) return;
         
-        Gdx.app.log("Game", spiel.getCurrentPlayer().getName() + " skipped tile #" + (currentPlayerTileCount + 1));
+        //Gdx.app.log("Game", spiel.getCurrentPlayer().getName() + " skipped tile #" + (currentPlayerTileCount + 1));
         
         // Apply skip penalty if needed (handled by game logic)
         spiel.getCurrentPlayer().plaettchenUeberspringen();
@@ -330,9 +329,9 @@ public class GameScreen implements Screen {
             
             if (currentCard != null) {
                 resetTilePosition();
-                Gdx.app.log("Game", "Drew next tile for " + spiel.getCurrentPlayer().getName());
+                //Gdx.app.log("Game", "Drew next tile for " + spiel.getCurrentPlayer().getName());
             } else {
-                Gdx.app.log("Game", "ERROR: No more cards in deck!");
+                //Gdx.app.log("Game", "ERROR: No more cards in deck!");
             }
         }
     }
@@ -340,7 +339,7 @@ public class GameScreen implements Screen {
     private void rotateTile() {
         if (currentCard != null && currentCard.getPlättchen() != null) {
             currentCard.getPlättchen().drehen();
-            Gdx.app.log("Game", "Tile rotated");
+            //Gdx.app.log("Game", "Tile rotated");
         }
     }
 

@@ -50,6 +50,14 @@ public class Kapitel {
         return deck.verbleibendeKarten();
     }
 
+    /**
+     * Resets the deck to the original shuffled order.
+     * Used when switching to player 2 so they get the same tile sequence.
+     */
+    public void resetDeck() {
+        deck.reset();
+    }
+
     public boolean istPlatzierungGültig(Plättchen plättchen, Stadtplan stadtplan,
             Position pos, boolean erstes) {
         return regeln.prüfenPlättchen(plättchen, stadtplan, pos, erstes);
