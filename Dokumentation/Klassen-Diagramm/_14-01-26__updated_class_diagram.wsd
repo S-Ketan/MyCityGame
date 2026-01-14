@@ -1,0 +1,123 @@
+@startuml
+class Spiel {
+    -Kapitel aktuellesKapitel
+    -Spieler[] spieler
+    -Spielstand spielstand
+    +neuesSpielStarten()
+    +kapitelLaden()
+}
+
+class Spieler {
+    -String name
+    -int punktzahl
+    -Stadtplan stadtplan
+    +plaettchenLegen(Plättchen, Position)
+}
+
+class Stadtplan {
+    -Feld[][] raster
+    -List<Sticker> sticker
+    +plättchenPlatzieren(Plättchen, Position)
+}
+
+class Feld {
+    -Geländetyp gelände
+    -BuildingColor color
+    -List<Sticker> stickers
+}
+
+class Kapitel {
+    -PlättchenDeck deck
+    -PlatzierungsRegel regeln
+    -KapitelBonus bonus
+    -List<Sticker> stickerVorgaben
+}
+
+class PlättchenDeck {
+    -List<Gebäudekarte> karten
+    +zieheKarte() Gebäudekarte
+}
+
+class Gebäudekarte {
+    -Plättchen plättchen
+}
+
+class Plättchen {
+    -boolean[][] form
+    -BuildingColor color
+}
+
+class Sticker {
+    -StickerTyp typ
+    -Position pos
+}
+
+class Position {
+    -int x
+    -int y
+}
+
+class PlatzierungsRegel {
+    +prüfenPlättchen(Plättchen, Stadtplan, Position)
+}
+
+class KapitelBonus {
+    +berechneBonusStadtplan(Stadtplan, Spiel)
+}
+
+class Spielstand {
+    -Spielerstand spieler1
+    -Spielerstand spieler2
+}
+
+class Spielerstand {
+    -Stadtplan stadtplan
+    -int punktzahl
+}
+
+enum BuildingColor {
+    RED, BLUE, YELLOW,
+}
+enum Geländetyp {
+    WIESE, BAUM, FELS,
+}
+enum StickerTyp {
+    BRUNNEN, BONUSFELD,
+}
+
+' --- Relationships ---
+Spiel "1" *-- "2" Spieler
+Spiel "1" *-- "1" Kapitel
+Spiel "1" o-- "1" Spielstand
+
+Spieler "1" *-- "1" Stadtplan
+
+Stadtplan "1" *-- "121" Feld
+Stadtplan "1" o-- "0..*" Sticker
+
+Kapitel "1" *-- "1" PlättchenDeck
+Kapitel "1" *-- "1" PlatzierungsRegel
+Kapitel "1" *-- "1" KapitelBonus
+Kapitel "1" o-- "0..*" Sticker
+
+PlättchenDeck "1" *-- "0..*" Gebäudekarte
+Gebäudekarte "1" *-- "1" Plättchen
+Plättchen "1" *-- "1" BuildingColor
+
+Feld "1" *-- "1" Geländetyp
+Feld "1" *-- "1" BuildingColor
+Feld "1" o-- "0..*" Sticker
+
+Sticker "1" *-- "1" StickerTyp
+Sticker "1" *-- "1" Position
+
+Spielstand "1" *-- "2" Spielerstand
+Spielerstand "1" o-- "1" Stadtplan
+
+' --- Dependencies (uses) ---
+PlatzierungsRegel ..> Plättchen : uses
+PlatzierungsRegel ..> Stadtplan : uses
+PlatzierungsRegel ..> Position : uses
+KapitelBonus ..> Stadtplan : uses
+KapitelBonus ..> Spiel : uses
+@enduml
