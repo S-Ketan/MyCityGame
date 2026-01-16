@@ -20,6 +20,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.github.myCity.Main;
+import io.github.myCity.view.UIStyle;
 
 public class MenuScreen implements Screen {
     private final Main game;
@@ -52,44 +53,53 @@ public class MenuScreen implements Screen {
         stage = new Stage(viewport, game.batch);
         Gdx.input.setInputProcessor(stage);
 
-        // Create a skin for the UI elements
+        // Create a skin that matches the GameScreen palette
         skin = new Skin();
-
-        // Use the font from Main.java
         skin.add("default-font", game.font);
 
-        // Create a texture for the text field background
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
         pixmap.fill();
         skin.add("white", new Texture(pixmap));
+        pixmap.dispose();
 
-        // Create a TextFieldStyle
+        // Text field styling
         TextField.TextFieldStyle textFieldStyle = new TextField.TextFieldStyle();
         textFieldStyle.font = skin.getFont("default-font");
-        textFieldStyle.fontColor = Color.BLACK;
-        textFieldStyle.background = skin.newDrawable("white", Color.LIGHT_GRAY);
-        textFieldStyle.cursor = skin.newDrawable("white", Color.BLACK);
-        textFieldStyle.selection = skin.newDrawable("white", Color.BLUE);
+        textFieldStyle.fontColor = UIStyle.PRIMARY_TEXT;
+        textFieldStyle.background = skin.newDrawable("white", UIStyle.SECONDARY_SOFT);
+        textFieldStyle.cursor = skin.newDrawable("white", UIStyle.ACCENT);
+        textFieldStyle.selection = skin.newDrawable("white", UIStyle.DIVIDER);
         skin.add("default", textFieldStyle);
 
-        // Create a TextButtonStyle
+        // Button styling
         TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
-        textButtonStyle.up = skin.newDrawable("white", Color.DARK_GRAY);
-        textButtonStyle.down = skin.newDrawable("white", Color.GRAY);
-        textButtonStyle.over = skin.newDrawable("white", Color.LIGHT_GRAY);
+        textButtonStyle.up = skin.newDrawable("white", UIStyle.BUTTON);
+        textButtonStyle.down = skin.newDrawable("white", UIStyle.SECONDARY);
+        textButtonStyle.over = skin.newDrawable("white", UIStyle.SECONDARY_SOFT);
+        textButtonStyle.checked = skin.newDrawable("white", UIStyle.SECONDARY);
         textButtonStyle.font = skin.getFont("default-font");
+        textButtonStyle.fontColor = UIStyle.PRIMARY_TEXT;
+        textButtonStyle.overFontColor = UIStyle.PRIMARY_TEXT;
         skin.add("default", textButtonStyle);
 
-        // Create a LabelStyle
+        // Labels
         Label.LabelStyle labelStyle = new Label.LabelStyle();
         labelStyle.font = skin.getFont("default-font");
-        labelStyle.fontColor = Color.WHITE; // Or any color you prefer
+        labelStyle.fontColor = UIStyle.PRIMARY_TEXT;
         skin.add("default", labelStyle);
+
+        Label.LabelStyle mutedLabelStyle = new Label.LabelStyle();
+        mutedLabelStyle.font = skin.getFont("default-font");
+        mutedLabelStyle.fontColor = UIStyle.SECONDARY_TEXT;
+        skin.add("muted", mutedLabelStyle);
 
 
         Table table = new Table();
         table.setFillParent(true);
+        table.pad(30);
+        table.defaults().pad(6);
+        table.setBackground(skin.newDrawable("white", UIStyle.PANEL));
         stage.addActor(table);
 
         player1NameField = new TextField("Player 1", skin);
@@ -100,15 +110,26 @@ public class MenuScreen implements Screen {
         loadButton = new TextButton("Load", skin);
         quitButton = new TextButton("Quit", skin);
 
-        table.add(new Label("Player 1 Name:", skin)).padBottom(10).row();
-        table.add(player1NameField).width(200).padBottom(10).row();
-        table.add(new Label("Player 2 Name:", skin)).padBottom(10).row();
-        table.add(player2NameField).width(200).padBottom(20).row();
+        Label title = new Label("My City", skin);
+        title.setFontScale(1.4f);
+        table.add(title).padBottom(16).row();
 
-        table.add(newGameButton).width(200).height(40).padBottom(10).row();
-        table.add(kapitelButton).width(200).height(40).padBottom(10).row();
-        table.add(loadButton).width(200).height(40).padBottom(10).row();
-        table.add(quitButton).width(200).height(40).padBottom(10).row();
+        table.add(new Label("Player 1", skin, "muted")).left();
+        table.row();
+        table.add(player1NameField).width(260).padBottom(12);
+        table.row();
+        table.add(new Label("Player 2", skin, "muted")).left();
+        table.row();
+        table.add(player2NameField).width(260).padBottom(18);
+        table.row();
+
+        table.add(newGameButton).width(260).height(46).padBottom(10);
+        table.row();
+        table.add(kapitelButton).width(260).height(46).padBottom(10);
+        table.row();
+        table.add(loadButton).width(260).height(46).padBottom(10);
+        table.row();
+        table.add(quitButton).width(260).height(46);
 
         newGameButton.addListener(new ClickListener() {
             @Override
@@ -145,7 +166,7 @@ public class MenuScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
+        Gdx.gl.glClearColor(UIStyle.BACKGROUND.r, UIStyle.BACKGROUND.g, UIStyle.BACKGROUND.b, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));

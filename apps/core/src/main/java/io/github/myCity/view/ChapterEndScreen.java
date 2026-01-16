@@ -20,7 +20,6 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import io.github.myCity.Main;
 import io.github.myCity.model.Spiel;
 import io.github.myCity.model.Spieler;
-import io.github.myCity.model.Stadtplan;
 
 /**
  * Screen displayed at the end of each chapter showing detailed score breakdown.
@@ -106,54 +105,67 @@ public class ChapterEndScreen implements Screen {
         // Label styles
         Label.LabelStyle titleStyle = new Label.LabelStyle();
         titleStyle.font = game.font;
-        titleStyle.fontColor = Color.GOLD;
+        titleStyle.fontColor = UIStyle.PRIMARY_TEXT;
         skin.add("title", titleStyle);
 
         Label.LabelStyle headerStyle = new Label.LabelStyle();
         headerStyle.font = game.font;
-        headerStyle.fontColor = Color.CYAN;
+        headerStyle.fontColor = UIStyle.PRIMARY_TEXT;
         skin.add("header", headerStyle);
 
         Label.LabelStyle defaultStyle = new Label.LabelStyle();
         defaultStyle.font = game.font;
-        defaultStyle.fontColor = Color.WHITE;
+        defaultStyle.fontColor = UIStyle.SECONDARY_TEXT;
         skin.add("default", defaultStyle);
 
         Label.LabelStyle positiveStyle = new Label.LabelStyle();
         positiveStyle.font = game.font;
-        positiveStyle.fontColor = Color.GREEN;
+        positiveStyle.fontColor = UIStyle.POSITIVE;
         skin.add("positive", positiveStyle);
 
         Label.LabelStyle negativeStyle = new Label.LabelStyle();
         negativeStyle.font = game.font;
-        negativeStyle.fontColor = Color.RED;
+        negativeStyle.fontColor = UIStyle.NEGATIVE;
         skin.add("negative", negativeStyle);
 
         Label.LabelStyle totalStyle = new Label.LabelStyle();
         totalStyle.font = game.font;
-        totalStyle.fontColor = Color.YELLOW;
+        totalStyle.fontColor = UIStyle.ACCENT;
         skin.add("total", totalStyle);
+
+        Label.LabelStyle treeIconStyle = new Label.LabelStyle();
+        treeIconStyle.font = game.font;
+        treeIconStyle.fontColor = UIStyle.POSITIVE;
+        skin.add("treeIcon", treeIconStyle);
+
+        Label.LabelStyle rockIconStyle = new Label.LabelStyle();
+        rockIconStyle.font = game.font;
+        rockIconStyle.fontColor = new Color(0.8f, 0.8f, 0.85f, 1f);
+        skin.add("rockIcon", rockIconStyle);
 
         // Button style
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
-        buttonStyle.up = skin.newDrawable("white", new Color(0.2f, 0.5f, 0.2f, 1f));
-        buttonStyle.down = skin.newDrawable("white", new Color(0.1f, 0.3f, 0.1f, 1f));
-        buttonStyle.over = skin.newDrawable("white", new Color(0.3f, 0.6f, 0.3f, 1f));
+        buttonStyle.up = skin.newDrawable("white", UIStyle.BUTTON);
+        buttonStyle.down = skin.newDrawable("white", UIStyle.SECONDARY);
+        buttonStyle.over = skin.newDrawable("white", UIStyle.SECONDARY_SOFT);
         buttonStyle.font = game.font;
+        buttonStyle.fontColor = UIStyle.PRIMARY_TEXT;
         skin.add("default", buttonStyle);
 
         TextButton.TextButtonStyle blueButtonStyle = new TextButton.TextButtonStyle();
-        blueButtonStyle.up = skin.newDrawable("white", new Color(0.2f, 0.2f, 0.5f, 1f));
-        blueButtonStyle.down = skin.newDrawable("white", new Color(0.1f, 0.1f, 0.3f, 1f));
-        blueButtonStyle.over = skin.newDrawable("white", new Color(0.3f, 0.3f, 0.6f, 1f));
+        blueButtonStyle.up = skin.newDrawable("white", UIStyle.SECONDARY);
+        blueButtonStyle.down = skin.newDrawable("white", UIStyle.PANEL);
+        blueButtonStyle.over = skin.newDrawable("white", UIStyle.SECONDARY_SOFT);
         blueButtonStyle.font = game.font;
+        blueButtonStyle.fontColor = UIStyle.PRIMARY_TEXT;
         skin.add("blue", blueButtonStyle);
     }
 
     private void createUI() {
         Table mainTable = new Table();
         mainTable.setFillParent(true);
-        mainTable.pad(20);
+        mainTable.pad(24);
+        mainTable.setBackground(skin.newDrawable("white", UIStyle.PANEL));
         stage.addActor(mainTable);
 
         // Title - use "Episode" for chapter 1 (episodes 1-3), "Chapter" for later
@@ -169,6 +181,8 @@ public class ChapterEndScreen implements Screen {
 
         // Create score tables for both players
         Table scoresTable = new Table();
+        scoresTable.setBackground(skin.newDrawable("white", UIStyle.SECONDARY));
+        scoresTable.pad(12);
 
         // Player headers
         Spieler[] players = spiel.getSpieler();
@@ -185,15 +199,15 @@ public class ChapterEndScreen implements Screen {
         // Score breakdown rows
         addScoreRow(scoresTable, "Base Score", 10, 10, "default");
 
-        // Trees
+        // Trees with small icon
         int trees1 = players[0].getStadtplan().bäumeZählen();
         int trees2 = players[1].getStadtplan().bäumeZählen();
-        addScoreRow(scoresTable, "Trees", trees1, trees2, "positive");
+        addScoreRowWithIcon(scoresTable, "Trees", "treeIcon", trees1, trees2, "positive");
 
-        // Rocks (negative)
+        // Rocks (negative) with icon
         int rocks1 = players[0].getStadtplan().felsenZählen();
         int rocks2 = players[1].getStadtplan().felsenZählen();
-        addScoreRow(scoresTable, "Rocks", rocks1, rocks2, "negative");
+        addScoreRowWithIcon(scoresTable, "Rocks", "rockIcon", rocks1, rocks2, "negative");
 
         // Empty spaces (negative)
         int empty1 = players[0].getStadtplan().leereWiesenZählen();
@@ -341,6 +355,23 @@ public class ChapterEndScreen implements Screen {
         table.row();
     }
 
+    private void addScoreRowWithIcon(Table table, String label, String iconStyle, int value1, int value2, String style) {
+        Table labelTable = new Table();
+        labelTable.add(new Label("\u25CF", skin, iconStyle)).padRight(6);
+        labelTable.add(new Label(label, skin)).left();
+        table.add(labelTable).width(200).pad(5).left();
+
+        String val1Str = formatValue(value1);
+        String val2Str = formatValue(value2);
+
+        String style1 = getStyleForValue(value1, style);
+        String style2 = getStyleForValue(value2, style);
+
+        table.add(new Label(val1Str, skin, style1)).width(150).pad(5).center();
+        table.add(new Label(val2Str, skin, style2)).width(150).pad(5).center();
+        table.row();
+    }
+
     private String formatValue(int value) {
         if (value > 0) return "+" + value;
         if (value == 0) return "0";
@@ -446,7 +477,7 @@ public class ChapterEndScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.1f, 0.12f, 0.15f, 1);
+        Gdx.gl.glClearColor(UIStyle.BACKGROUND.r, UIStyle.BACKGROUND.g, UIStyle.BACKGROUND.b, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));

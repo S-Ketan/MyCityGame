@@ -21,6 +21,7 @@ import io.github.myCity.model.Spieler;
 import io.github.myCity.model.Stadtplan;
 import io.github.myCity.model.Sticker;
 import io.github.myCity.model.StickerTyp;
+import io.github.myCity.view.UIStyle;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -189,7 +190,7 @@ public class BrunnenPlacementScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.1f, 0.12f, 0.15f, 1);
+        Gdx.gl.glClearColor(UIStyle.BACKGROUND.r, UIStyle.BACKGROUND.g, UIStyle.BACKGROUND.b, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.update();
@@ -224,7 +225,7 @@ public class BrunnenPlacementScreen implements Screen {
 
         // Highlight valid Brunnen positions
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        Color highlightColor = new Color(0.2f, 0.5f, 0.9f, 0.5f); // Blue highlight
+        Color highlightColor = new Color(UIStyle.ACCENT.r, UIStyle.ACCENT.g, UIStyle.ACCENT.b, 0.28f);
 
         for (Position pos : VALID_BRUNNEN_POSITIONS) {
             if (isValidBrunnenPosition(pos)) {
@@ -238,7 +239,7 @@ public class BrunnenPlacementScreen implements Screen {
 
         // Draw grid lines
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        game.shapeRenderer.setColor(Color.BLACK);
+        game.shapeRenderer.setColor(UIStyle.DIVIDER);
         for (int x = 0; x <= GRID_SIZE; x++) {
             for (int y = 0; y <= GRID_SIZE; y++) {
                 if (x < GRID_SIZE && y < GRID_SIZE) {
@@ -253,7 +254,7 @@ public class BrunnenPlacementScreen implements Screen {
     private void drawUI() {
         Spieler currentPlayer = spiel.getSpieler()[currentPlayerIndex];
 
-        game.font.setColor(Color.GOLD);
+        game.font.setColor(UIStyle.PRIMARY_TEXT);
         game.font.getData().setScale(1.5f);
 
         String title = "Episode 3 - Place Brunnen (Well)";
@@ -262,22 +263,22 @@ public class BrunnenPlacementScreen implements Screen {
                       viewport.getWorldHeight() - 20);
 
         game.font.getData().setScale(1.0f);
-        game.font.setColor(Color.WHITE);
+        game.font.setColor(UIStyle.PRIMARY_TEXT);
 
         float rightX = gridStartX + GRID_WORLD_SIZE + 30;
         float currentY = viewport.getWorldHeight() - 80;
 
-        game.font.setColor(Color.CYAN);
+        game.font.setColor(UIStyle.PRIMARY_TEXT);
         game.font.draw(game.batch, currentPlayer.getName(), rightX, currentY);
         currentY -= 30;
 
-        game.font.setColor(Color.WHITE);
+        game.font.setColor(UIStyle.PRIMARY_TEXT);
         game.font.draw(game.batch, "Place your BRUNNEN", rightX, currentY);
         currentY -= 25;
         game.font.draw(game.batch, "on a highlighted field.", rightX, currentY);
         currentY -= 40;
 
-        game.font.setColor(Color.LIGHT_GRAY);
+        game.font.setColor(UIStyle.SECONDARY_TEXT);
         game.font.getData().setScale(0.9f);
         game.font.draw(game.batch, "Brunnen Rule:", rightX, currentY);
         currentY -= 20;

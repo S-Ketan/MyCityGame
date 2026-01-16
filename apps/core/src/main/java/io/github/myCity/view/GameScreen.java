@@ -100,6 +100,21 @@ public class GameScreen implements Screen {
     public void show() {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
+            public boolean keyDown(int keycode) {
+                if (showChapterEndDialog) return false;
+
+                if (keycode == Input.Keys.Q || keycode == Input.Keys.E) {
+                    rotateTile();
+                    return true;
+                }
+                if (keycode == Input.Keys.P) {
+                    skipTile();
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 if (button != Input.Buttons.LEFT) return false;
                 
@@ -670,7 +685,7 @@ public class GameScreen implements Screen {
         glyphLayout.setText(game.font, "Rotate [Q/E]");
         float rotateTextX = rotateButton.x + (rotateButton.width - glyphLayout.width) / 2f;
         float rotateTextY = rotateButton.y + (rotateButton.height + glyphLayout.height) / 2f;
-        game.font.draw(game.batch, "Rotate [Q/E]", rotateTextX, rotateTextY);
+        game.font.draw(game.batch, "Rotate [Q]", rotateTextX, rotateTextY);
         
         // Skip button label
         glyphLayout.setText(game.font, "Skip [P]");
@@ -842,6 +857,28 @@ public class GameScreen implements Screen {
                         game.shapeRenderer.setColor(getColorForGeländetyp(feld.getGelände()));
                     }
                     game.shapeRenderer.rect(gridStartX + i * TILE_SIZE, gridStartY + j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                }
+            }
+        }
+        game.shapeRenderer.end();
+
+        // Overlay round markers for trees and rocks on unoccupied terrain to match sticker visuals
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        float markerRadius = TILE_SIZE * 0.35f;
+        for (int i = 0; i < GRID_SIZE; i++) {
+            for (int j = 0; j < GRID_SIZE; j++) {
+                Feld feld = stadtplan.getFeld(i, j);
+                if (feld == null || feld.istBelegt()) continue;
+
+                float centerX = gridStartX + i * TILE_SIZE + TILE_SIZE / 2f;
+                float centerY = gridStartY + j * TILE_SIZE + TILE_SIZE / 2f;
+
+                if (feld.getGelände() == Geländetyp.BAUM) {
+                    game.shapeRenderer.setColor(new Color(0.15f, 0.55f, 0.25f, 1f));
+                    game.shapeRenderer.circle(centerX, centerY, markerRadius);
+                } else if (feld.getGelände() == Geländetyp.FELS) {
+                    game.shapeRenderer.setColor(new Color(0.6f, 0.6f, 0.65f, 1f));
+                    game.shapeRenderer.circle(centerX, centerY, markerRadius);
                 }
             }
         }

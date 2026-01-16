@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 
 import io.github.myCity.Main;
+import io.github.myCity.view.UIStyle;
 
 /** First screen of the application. Displayed after the application is created. */
 public class FirstScreen implements Screen {
@@ -61,7 +62,7 @@ public class FirstScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
+        Gdx.gl.glClearColor(UIStyle.BACKGROUND.r, UIStyle.BACKGROUND.g, UIStyle.BACKGROUND.b, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         drawGrid();
@@ -99,9 +100,16 @@ public class FirstScreen implements Screen {
     }
 
     private void renderMenu() {
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        drawButton(newGameButton, UIStyle.BUTTON);
+        drawButton(kapitelButton, UIStyle.BUTTON);
+        drawButton(loadButton, UIStyle.SECONDARY);
+        drawButton(quitButton, UIStyle.SECONDARY);
+        game.shapeRenderer.end();
+
         game.batch.begin();
         game.font.getData().setScale(1.5f);
-        game.font.setColor(Color.WHITE);
+        game.font.setColor(UIStyle.PRIMARY_TEXT);
         game.font.draw(game.batch, "New Game", newGameButton.x + 30, newGameButton.y + 30);
         game.font.draw(game.batch, "Kapitel", kapitelButton.x + 30, kapitelButton.y + 30);
         game.font.draw(game.batch, "Load", loadButton.x + 30, loadButton.y + 30);
@@ -131,15 +139,29 @@ public class FirstScreen implements Screen {
     }
 
     private void renderKapitel() {
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        for (Rectangle kapitelButton : kapitelButtons) {
+            drawButton(kapitelButton, UIStyle.BUTTON);
+        }
+        drawButton(backButton, UIStyle.SECONDARY);
+        game.shapeRenderer.end();
+
         game.batch.begin();
         game.font.getData().setScale(1.5f);
-        game.font.setColor(Color.WHITE);
-        
+        game.font.setColor(UIStyle.PRIMARY_TEXT);
         for (int i = 0; i < 8; i++) {
             game.font.draw(game.batch, "Kapitel " + (i + 1), kapitelButtons[i].x, kapitelButtons[i].y + 15);
         }
+        game.font.setColor(UIStyle.SECONDARY_TEXT);
         game.font.draw(game.batch, "Back", backButton.x, backButton.y + 15);
         game.batch.end();
+    }
+
+    private void drawButton(Rectangle rect, Color fill) {
+        game.shapeRenderer.setColor(fill);
+        game.shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+        game.shapeRenderer.setColor(UIStyle.BUTTON_BORDER);
+        game.shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
     }
 
     private void handleKapitelInput() {

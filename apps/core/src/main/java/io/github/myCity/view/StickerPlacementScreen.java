@@ -22,6 +22,7 @@ import io.github.myCity.model.Spieler;
 import io.github.myCity.model.Stadtplan;
 import io.github.myCity.model.Sticker;
 import io.github.myCity.model.StickerTyp;
+import io.github.myCity.view.UIStyle;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -255,7 +256,7 @@ public class StickerPlacementScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.1f, 0.12f, 0.15f, 1);
+        Gdx.gl.glClearColor(UIStyle.BACKGROUND.r, UIStyle.BACKGROUND.g, UIStyle.BACKGROUND.b, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.update();
@@ -294,7 +295,8 @@ public class StickerPlacementScreen implements Screen {
         // Highlight valid sticker positions
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         Color highlightColor = currentStickerType == StickerTyp.FELS_HINZUFÜGEN ?
-                              new Color(0.5f, 0.5f, 0.5f, 0.5f) : new Color(0.2f, 0.8f, 0.2f, 0.5f);
+                      new Color(UIStyle.ACCENT.r, UIStyle.ACCENT.g, UIStyle.ACCENT.b, 0.28f)
+                      : new Color(UIStyle.POSITIVE.r, UIStyle.POSITIVE.g, UIStyle.POSITIVE.b, 0.35f);
 
         for (Position pos : VALID_STICKER_POSITIONS) {
             if (isValidStickerPosition(pos)) {
@@ -308,7 +310,7 @@ public class StickerPlacementScreen implements Screen {
 
         // Draw grid lines
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        game.shapeRenderer.setColor(Color.BLACK);
+        game.shapeRenderer.setColor(UIStyle.DIVIDER);
         for (int x = 0; x <= GRID_SIZE; x++) {
             for (int y = 0; y <= GRID_SIZE; y++) {
                 if (x < GRID_SIZE && y < GRID_SIZE) {
@@ -324,7 +326,7 @@ public class StickerPlacementScreen implements Screen {
         Spieler currentPlayer = spiel.getSpieler()[currentPlacingPlayer];
         String stickerName = currentStickerType == StickerTyp.FELS_HINZUFÜGEN ? "ROCK" : "TREE";
 
-        game.font.setColor(Color.GOLD);
+        game.font.setColor(UIStyle.PRIMARY_TEXT);
         game.font.getData().setScale(1.5f);
 
         String title = "Episode " + completedEpisode + " Complete - Sticker Placement";
@@ -333,7 +335,7 @@ public class StickerPlacementScreen implements Screen {
                       viewport.getWorldHeight() - 20);
 
         game.font.getData().setScale(1.0f);
-        game.font.setColor(Color.WHITE);
+        game.font.setColor(UIStyle.PRIMARY_TEXT);
 
         // Instructions on the right side
         float rightX = gridStartX + GRID_WORLD_SIZE + 30;
@@ -342,15 +344,15 @@ public class StickerPlacementScreen implements Screen {
         String playerInfo = currentPlayer.getName();
         if (currentPlayerRole.equals("winner")) {
             playerInfo += " (Winner)";
-            game.font.setColor(Color.YELLOW);
+            game.font.setColor(UIStyle.ACCENT);
         } else {
             playerInfo += " (Runner-up)";
-            game.font.setColor(Color.CYAN);
+            game.font.setColor(UIStyle.SECONDARY_TEXT);
         }
         game.font.draw(game.batch, playerInfo, rightX, currentY);
         currentY -= 30;
 
-        game.font.setColor(Color.WHITE);
+        game.font.setColor(UIStyle.PRIMARY_TEXT);
         game.font.draw(game.batch, "Place a " + stickerName + " sticker", rightX, currentY);
         currentY -= 25;
 
@@ -358,7 +360,7 @@ public class StickerPlacementScreen implements Screen {
         currentY -= 40;
 
         // Explain the rule
-        game.font.setColor(Color.LIGHT_GRAY);
+        game.font.setColor(UIStyle.SECONDARY_TEXT);
         game.font.getData().setScale(0.9f);
         if (currentStickerType == StickerTyp.FELS_HINZUFÜGEN) {
             game.font.draw(game.batch, "Rock = -1 point if visible", rightX, currentY);
@@ -368,7 +370,7 @@ public class StickerPlacementScreen implements Screen {
         currentY -= 50;
 
         // Show scores
-        game.font.setColor(Color.WHITE);
+        game.font.setColor(UIStyle.PRIMARY_TEXT);
         game.font.getData().setScale(1.0f);
         game.font.draw(game.batch, "Current Scores:", rightX, currentY);
         currentY -= 25;
