@@ -54,6 +54,7 @@ public class GameScreen implements Screen {
     private boolean showChapterEndDialog = false;
     private Rectangle saveButton;
     private Rectangle continueButton;
+    private final Rectangle previewBox = new Rectangle();
 
     public GameScreen(Main game, String player1Name, String player2Name) {
         this.game = game;
@@ -340,28 +341,22 @@ public class GameScreen implements Screen {
         if (currentCard != null && currentCard.getPlättchen() != null) {
             currentCard.getPlättchen().drehen();
             //Gdx.app.log("Game", "Tile rotated");
+            if (!isDragging) {
+                resetTilePosition();
+            }
         }
     }
 
     private void resetTilePosition() {
-        float gridEndX = gridStartX + GRID_WORLD_SIZE;
-        float panelX = gridEndX + 15;
-        float panelWidth = viewport.getWorldWidth() - panelX - 10;
-        
-        // Position tile in the preview box
-        float previewBoxX = panelX + 10;
-        float previewBoxY = gridStartY + 140;
-        float previewBoxWidth = panelWidth - 20;
-        float previewBoxHeight = 200;
-        
+        Rectangle box = getPreviewBox();
         if (currentCard != null && currentCard.getPlättchen() != null) {
             Plättchen plättchen = currentCard.getPlättchen();
             float plättchenWidth = plättchen.getBreite() * TILE_SIZE;
             float plättchenHeight = plättchen.getHöhe() * TILE_SIZE;
             
             // Center tile in preview box
-            tilePosition.x = previewBoxX + (previewBoxWidth - plättchenWidth) / 2f;
-            tilePosition.y = previewBoxY + (previewBoxHeight - plättchenHeight) / 2f;
+            tilePosition.x = box.x + (box.width - plättchenWidth) / 2f;
+            tilePosition.y = box.y + (box.height - plättchenHeight) / 2f;
         }
     }
 
@@ -403,7 +398,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.08f, 0.1f, 0.12f, 1);
+        Gdx.gl.glClearColor(0.0549f, 0.0784f, 0.1059f, 1); // #0E141B
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.update();
@@ -449,13 +444,13 @@ public class GameScreen implements Screen {
         game.batch.end();
         game.shapeRenderer.setProjectionMatrix(camera.combined);
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        game.shapeRenderer.setColor(new Color(0.18f, 0.24f, 0.31f, 1f)); // Dark blue-gray background
+        game.shapeRenderer.setColor(new Color(0.1725f, 0.2431f, 0.3137f, 1f)); // #2C3E50 main panel
         game.shapeRenderer.rect(panelX, panelY, panelWidth, panelHeight);
         game.shapeRenderer.end();
         
         // Draw panel border and accent line
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        game.shapeRenderer.setColor(new Color(0.3f, 0.5f, 0.7f, 1f)); // Blue accent line
+        game.shapeRenderer.setColor(new Color(0.2902f, 0.3843f, 0.4784f, 1f)); // #4A627A divider/accent
         game.shapeRenderer.rect(panelX, panelY + panelHeight - 3, panelWidth, 3);
         game.shapeRenderer.end();
         
@@ -465,7 +460,7 @@ public class GameScreen implements Screen {
         float textY = panelY + panelHeight - 20;
         
         // Title section
-        game.font.setColor(new Color(0.9f, 0.9f, 0.9f, 1f));
+        game.font.setColor(new Color(0.9255f, 0.9412f, 0.9451f, 1f)); // #ECF0F1
         game.font.getData().setScale(1.1f);
         game.font.draw(game.batch, "My City - Multiplayer", textX, textY);
         textY -= 30;
@@ -473,20 +468,29 @@ public class GameScreen implements Screen {
         // Divider line
         game.batch.end();
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        game.shapeRenderer.setColor(new Color(0.3f, 0.4f, 0.5f, 0.5f));
+        game.shapeRenderer.setColor(new Color(0.2902f, 0.3843f, 0.4784f, 0.5f)); // #4A627A
         game.shapeRenderer.rect(panelX + 10, textY - 5, panelWidth - 20, 1);
         game.shapeRenderer.end();
         game.batch.begin();
         textY -= 15;
         
         // Current Player section
-        game.font.setColor(new Color(1f, 0.7f, 0.3f, 1f)); // Orange for player name
+        // Current player label with subtle amber dot, text off-white
+        float dotRadius = 4f;
+        game.batch.end();
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        game.shapeRenderer.setColor(new Color(0.9529f, 0.6118f, 0.0706f, 1f));
+        game.shapeRenderer.circle(textX - 8f, textY - 6f, dotRadius);
+        game.shapeRenderer.end();
+        game.batch.begin();
+
+        game.font.setColor(new Color(0.9255f, 0.9412f, 0.9451f, 1f)); // off-white text
         game.font.getData().setScale(0.85f);
         game.font.draw(game.batch, "Current Player: " + currentPlayer.getName(), textX, textY);
         textY -= 28;
         
         // Episode and Deck info on same line
-        game.font.setColor(new Color(0.85f, 0.85f, 0.85f, 1f));
+        game.font.setColor(new Color(0.6667f, 0.7176f, 0.7686f, 1f)); // #AAB7C4 secondary text
         game.font.getData().setScale(0.8f);
         game.font.draw(game.batch, "Episode: " + spiel.getAktuellesKapitelNummer(), textX, textY);
         
@@ -498,14 +502,14 @@ public class GameScreen implements Screen {
         // Another divider
         game.batch.end();
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        game.shapeRenderer.setColor(new Color(0.3f, 0.4f, 0.5f, 0.5f));
+        game.shapeRenderer.setColor(new Color(0.2902f, 0.3843f, 0.4784f, 0.5f)); // #4A627A
         game.shapeRenderer.rect(panelX + 10, textY - 5, panelWidth - 20, 1);
         game.shapeRenderer.end();
         game.batch.begin();
         textY -= 15;
         
         // Scores section
-        game.font.setColor(new Color(0.9f, 0.9f, 0.9f, 1f));
+        game.font.setColor(new Color(0.9255f, 0.9412f, 0.9451f, 1f)); // #ECF0F1
         game.font.getData().setScale(0.9f);
         game.font.draw(game.batch, "Scores:", textX, textY);
         textY -= 22;
@@ -516,7 +520,16 @@ public class GameScreen implements Screen {
             boolean isCurrent = player.equals(currentPlayer);
             
             // Player name and score
-            game.font.setColor(isCurrent ? new Color(1f, 0.7f, 0.3f, 1f) : new Color(0.4f, 0.7f, 1f, 1f));
+            // Name text off-white; small amber dot for current player, blue dot for other
+            float nameDotRadius = 3.5f;
+            game.batch.end();
+            game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            game.shapeRenderer.setColor(isCurrent ? new Color(0.9529f, 0.6118f, 0.0706f, 1f) : new Color(0.278f, 0.525f, 0.76f, 1f));
+            game.shapeRenderer.circle(textX - 8f, textY - 6f, nameDotRadius);
+            game.shapeRenderer.end();
+            game.batch.begin();
+
+            game.font.setColor(new Color(0.9255f, 0.9412f, 0.9451f, 1f));
             game.font.getData().setScale(0.75f);
             String playerText = player.getName() + ": " + player.getPunktzahl() + " pts";
             game.font.draw(game.batch, playerText, textX, textY);
@@ -530,13 +543,13 @@ public class GameScreen implements Screen {
             float barY = textY - 10;
             
             game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            // Background (slightly lighter so empty bars remain visible)
-            game.shapeRenderer.setColor(new Color(0.15f, 0.2f, 0.26f, 1f));
+            // Background
+            game.shapeRenderer.setColor(new Color(0.2275f, 0.3100f, 0.3882f, 1f)); // lighter than panel (3A4F63)
             game.shapeRenderer.rect(barX, barY, barWidth, barHeight);
 
             // Fill (show a 2px sliver when non-zero to make it visible)
             float fillWidth = (player.getProgressPoints() / 100f) * barWidth;
-            game.shapeRenderer.setColor(isCurrent ? new Color(1f, 0.7f, 0.3f, 1f) : new Color(0.4f, 0.7f, 1f, 1f));
+            game.shapeRenderer.setColor(isCurrent ? new Color(0.965f, 0.7f, 0.18f, 1f) : new Color(0.278f, 0.525f, 0.76f, 1f)); // brighter fills for readability
             if (fillWidth > 0) {
                 game.shapeRenderer.rect(barX, barY, Math.max(2f, fillWidth), barHeight);
             }
@@ -544,13 +557,13 @@ public class GameScreen implements Screen {
 
             // Border
             game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-            game.shapeRenderer.setColor(new Color(0.55f, 0.65f, 0.75f, 1f));
+            game.shapeRenderer.setColor(new Color(0.9255f, 0.9412f, 0.9451f, 0.6f)); // subtle light border
             game.shapeRenderer.rect(barX, barY, barWidth, barHeight);
             game.shapeRenderer.end();
             
             // Progress text
             game.batch.begin();
-            game.font.setColor(new Color(0.7f, 0.7f, 0.7f, 1f));
+            game.font.setColor(new Color(0.6667f, 0.7176f, 0.7686f, 1f)); // #AAB7C4 secondary
             game.font.getData().setScale(0.65f);
             String progressText = player.getProgressPoints() + "/100";
             glyphLayout.setText(game.font, progressText);
@@ -573,7 +586,7 @@ public class GameScreen implements Screen {
         textY -= 15;
         
         // Piece Color section
-        game.font.setColor(new Color(0.9f, 0.9f, 0.9f, 1f));
+        game.font.setColor(new Color(0.9255f, 0.9412f, 0.9451f, 1f)); // #ECF0F1
         game.font.getData().setScale(0.85f);
         game.font.draw(game.batch, "Piece Color:", textX, textY);
         
@@ -581,7 +594,7 @@ public class GameScreen implements Screen {
             String colorName = currentCard.getPlättchen().getColor().name();
             Color pieceColor = getColorForBuildingColor(currentCard.getPlättchen().getColor());
             
-            game.font.setColor(new Color(0.85f, 0.85f, 0.85f, 1f));
+            game.font.setColor(new Color(0.6667f, 0.7176f, 0.7686f, 1f)); // #AAB7C4
             game.font.getData().setScale(0.8f);
             game.font.draw(game.batch, colorName, textX, textY - 18);
             
@@ -610,42 +623,39 @@ public class GameScreen implements Screen {
         game.batch.end();
         game.shapeRenderer.setProjectionMatrix(camera.combined);
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        game.shapeRenderer.setColor(new Color(0.12f, 0.16f, 0.21f, 1f));
-        float previewBoxX = panelX + 10;
-        float previewBoxY = panelY + 120;
-        float previewBoxWidth = panelWidth - 20;
-        float previewBoxHeight = 180;
-        game.shapeRenderer.rect(previewBoxX, previewBoxY, previewBoxWidth, previewBoxHeight);
+        game.shapeRenderer.setColor(new Color(0.2275f, 0.3100f, 0.3882f, 1f)); // 3A4F63 inner container (slightly lighter)
+        Rectangle preview = getPreviewBox();
+        game.shapeRenderer.rect(preview.x, preview.y, preview.width, preview.height);
         
         // Preview box border
         game.shapeRenderer.end();
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        game.shapeRenderer.setColor(new Color(0.3f, 0.5f, 0.7f, 1f));
-        game.shapeRenderer.rect(previewBoxX, previewBoxY, previewBoxWidth, previewBoxHeight);
+        game.shapeRenderer.setColor(new Color(0.2902f, 0.3843f, 0.4784f, 1f)); // #4A627A border
+        game.shapeRenderer.rect(preview.x, preview.y, preview.width, preview.height);
         game.shapeRenderer.end();
         
         // Draw help text in preview box if no card
         if (currentCard == null || currentCard.getPlättchen() == null) {
             game.batch.begin();
-            game.font.setColor(new Color(0.4f, 0.4f, 0.4f, 1f));
+            game.font.setColor(new Color(0.6667f, 0.7176f, 0.7686f, 1f)); // #AAB7C4 help text
             game.font.getData().setScale(0.75f);
             String helpText = "Drag tile to board";
             glyphLayout.setText(game.font, helpText);
             game.font.draw(game.batch, helpText, 
-                previewBoxX + (previewBoxWidth - glyphLayout.width) / 2f,
-                previewBoxY + previewBoxHeight / 2f);
+                preview.x + (preview.width - glyphLayout.width) / 2f,
+                preview.y + preview.height / 2f);
             game.batch.end();
         }
         
         // Draw buttons inside panel (below preview box)
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        game.shapeRenderer.setColor(new Color(0.3f, 0.5f, 0.7f, 1f));
+        game.shapeRenderer.setColor(new Color(0.2275f, 0.4314f, 0.6471f, 1f)); // #3A6EA5 button fill
         game.shapeRenderer.rect(rotateButton.x, rotateButton.y, rotateButton.width, rotateButton.height);
         game.shapeRenderer.rect(skipButton.x, skipButton.y, skipButton.width, skipButton.height);
         game.shapeRenderer.end();
         
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        game.shapeRenderer.setColor(new Color(0.5f, 0.7f, 0.9f, 1f));
+        game.shapeRenderer.setColor(new Color(0.2902f, 0.3843f, 0.4784f, 1f)); // #4A627A border
         game.shapeRenderer.rect(rotateButton.x, rotateButton.y, rotateButton.width, rotateButton.height);
         game.shapeRenderer.rect(skipButton.x, skipButton.y, skipButton.width, skipButton.height);
         game.shapeRenderer.end();
@@ -653,7 +663,7 @@ public class GameScreen implements Screen {
         game.batch.begin();
         
         // Draw button labels
-        game.font.setColor(Color.WHITE);
+        game.font.setColor(new Color(1f, 1f, 1f, 1f));
         game.font.getData().setScale(0.95f);
         
         // Rotate button label
@@ -729,6 +739,15 @@ public class GameScreen implements Screen {
         game.shapeRenderer.end();
     }
 
+    private Rectangle getPreviewBox() {
+        float gridEndX = gridStartX + GRID_WORLD_SIZE;
+        float panelX = gridEndX + 15;
+        float panelWidth = viewport.getWorldWidth() - panelX - 10;
+
+        previewBox.set(panelX + 10, gridStartY + 120, panelWidth - 20, 180);
+        return previewBox;
+    }
+
     private void drawCurrentTile() {
         if (currentCard == null || currentCard.getPlättchen() == null) return;
         
@@ -802,7 +821,7 @@ public class GameScreen implements Screen {
 
         // Draw board frame background (outer border)
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        game.shapeRenderer.setColor(new Color(0.25f, 0.32f, 0.4f, 1f)); // Dark blue-gray frame
+        game.shapeRenderer.setColor(new Color(0.1725f, 0.2431f, 0.3137f, 1f)); // #2C3E50 frame
         float frameThickness = 15f;
         game.shapeRenderer.rect(gridStartX - frameThickness, gridStartY - frameThickness, 
                                GRID_WORLD_SIZE + frameThickness * 2, GRID_WORLD_SIZE + frameThickness * 2);
