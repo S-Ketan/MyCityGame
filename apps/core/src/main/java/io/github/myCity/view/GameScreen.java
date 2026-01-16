@@ -530,14 +530,22 @@ public class GameScreen implements Screen {
             float barY = textY - 10;
             
             game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            // Background
-            game.shapeRenderer.setColor(new Color(0.1f, 0.15f, 0.2f, 1f));
+            // Background (slightly lighter so empty bars remain visible)
+            game.shapeRenderer.setColor(new Color(0.15f, 0.2f, 0.26f, 1f));
             game.shapeRenderer.rect(barX, barY, barWidth, barHeight);
-            
-            // Fill
+
+            // Fill (show a 2px sliver when non-zero to make it visible)
             float fillWidth = (player.getProgressPoints() / 100f) * barWidth;
             game.shapeRenderer.setColor(isCurrent ? new Color(1f, 0.7f, 0.3f, 1f) : new Color(0.4f, 0.7f, 1f, 1f));
-            game.shapeRenderer.rect(barX, barY, fillWidth, barHeight);
+            if (fillWidth > 0) {
+                game.shapeRenderer.rect(barX, barY, Math.max(2f, fillWidth), barHeight);
+            }
+            game.shapeRenderer.end();
+
+            // Border
+            game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+            game.shapeRenderer.setColor(new Color(0.55f, 0.65f, 0.75f, 1f));
+            game.shapeRenderer.rect(barX, barY, barWidth, barHeight);
             game.shapeRenderer.end();
             
             // Progress text
@@ -604,9 +612,9 @@ public class GameScreen implements Screen {
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         game.shapeRenderer.setColor(new Color(0.12f, 0.16f, 0.21f, 1f));
         float previewBoxX = panelX + 10;
-        float previewBoxY = panelY + 140;
+        float previewBoxY = panelY + 120;
         float previewBoxWidth = panelWidth - 20;
-        float previewBoxHeight = 200;
+        float previewBoxHeight = 180;
         game.shapeRenderer.rect(previewBoxX, previewBoxY, previewBoxWidth, previewBoxHeight);
         
         // Preview box border
@@ -646,7 +654,7 @@ public class GameScreen implements Screen {
         
         // Draw button labels
         game.font.setColor(Color.WHITE);
-        game.font.getData().setScale(0.85f);
+        game.font.getData().setScale(0.95f);
         
         // Rotate button label
         glyphLayout.setText(game.font, "Rotate [Q/E]");
@@ -856,18 +864,46 @@ public class GameScreen implements Screen {
             float x = gridStartX + pos.getX() * TILE_SIZE;
             float y = gridStartY + pos.getY() * TILE_SIZE;
 
-            if (sticker.getTyp() == io.github.myCity.model.StickerTyp.BRUNNEN) {
-                // Draw Brunnen (well) as a cyan/blue circle
-                game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-                game.shapeRenderer.setColor(new Color(0.2f, 0.7f, 0.9f, 1f));
-                game.shapeRenderer.circle(x + TILE_SIZE / 2, y + TILE_SIZE / 2, TILE_SIZE / 3);
-                game.shapeRenderer.end();
+            float radius = TILE_SIZE / 3;
+            switch (sticker.getTyp()) {
+                case BRUNNEN:
+                    // Cyan/blue well
+                    game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+                    game.shapeRenderer.setColor(new Color(0.2f, 0.7f, 0.9f, 1f));
+                    game.shapeRenderer.circle(x + TILE_SIZE / 2, y + TILE_SIZE / 2, radius);
+                    game.shapeRenderer.end();
 
-                // Draw border
-                game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-                game.shapeRenderer.setColor(Color.WHITE);
-                game.shapeRenderer.circle(x + TILE_SIZE / 2, y + TILE_SIZE / 2, TILE_SIZE / 3);
-                game.shapeRenderer.end();
+                    game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+                    game.shapeRenderer.setColor(Color.WHITE);
+                    game.shapeRenderer.circle(x + TILE_SIZE / 2, y + TILE_SIZE / 2, radius);
+                    game.shapeRenderer.end();
+                    break;
+                case BAUM_HINZUFÜGEN:
+                    // Deep green tree marker
+                    game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+                    game.shapeRenderer.setColor(new Color(0.15f, 0.55f, 0.25f, 1f));
+                    game.shapeRenderer.circle(x + TILE_SIZE / 2, y + TILE_SIZE / 2, radius);
+                    game.shapeRenderer.end();
+
+                    game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+                    game.shapeRenderer.setColor(new Color(0.05f, 0.25f, 0.1f, 1f));
+                    game.shapeRenderer.circle(x + TILE_SIZE / 2, y + TILE_SIZE / 2, radius);
+                    game.shapeRenderer.end();
+                    break;
+                case FELS_HINZUFÜGEN:
+                    // Rock marker in gray/stone
+                    game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+                    game.shapeRenderer.setColor(new Color(0.45f, 0.45f, 0.5f, 1f));
+                    game.shapeRenderer.circle(x + TILE_SIZE / 2, y + TILE_SIZE / 2, radius);
+                    game.shapeRenderer.end();
+
+                    game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+                    game.shapeRenderer.setColor(new Color(0.75f, 0.75f, 0.8f, 1f));
+                    game.shapeRenderer.circle(x + TILE_SIZE / 2, y + TILE_SIZE / 2, radius);
+                    game.shapeRenderer.end();
+                    break;
+                default:
+                    break;
             }
         }
     }
