@@ -345,13 +345,23 @@ public class GameScreen implements Screen {
 
     private void resetTilePosition() {
         float gridEndX = gridStartX + GRID_WORLD_SIZE;
-        float rightAreaWidth = viewport.getWorldWidth() - gridEndX;
+        float panelX = gridEndX + 15;
+        float panelWidth = viewport.getWorldWidth() - panelX - 10;
+        
+        // Position tile in the preview box
+        float previewBoxX = panelX + 10;
+        float previewBoxY = gridStartY + 140;
+        float previewBoxWidth = panelWidth - 20;
+        float previewBoxHeight = 200;
         
         if (currentCard != null && currentCard.getPlättchen() != null) {
             Plättchen plättchen = currentCard.getPlättchen();
             float plättchenWidth = plättchen.getBreite() * TILE_SIZE;
-            tilePosition.x = gridEndX + (rightAreaWidth - plättchenWidth) * 0.75f;
-            tilePosition.y = (viewport.getWorldHeight() - (plättchen.getHöhe() * TILE_SIZE)) / 2f;
+            float plättchenHeight = plättchen.getHöhe() * TILE_SIZE;
+            
+            // Center tile in preview box
+            tilePosition.x = previewBoxX + (previewBoxWidth - plättchenWidth) / 2f;
+            tilePosition.y = previewBoxY + (previewBoxHeight - plättchenHeight) / 2f;
         }
     }
 
@@ -393,7 +403,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
+        Gdx.gl.glClearColor(0.08f, 0.1f, 0.12f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.update();
@@ -401,9 +411,6 @@ public class GameScreen implements Screen {
 
         // Draw grid
         drawGrid(spiel.getCurrentPlayer().getStadtplan());
-        
-        // Draw current tile (either at original position or being dragged)
-        drawCurrentTile();
 
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
@@ -412,10 +419,12 @@ public class GameScreen implements Screen {
             drawChapterEndDialog();
         } else {
             drawGameUI();
-            drawProgressBars();
         }
 
         game.batch.end();
+
+        // Draw current tile AFTER UI panel (either at original position or being dragged)
+        drawCurrentTile();
 
         // Draw buttons
         if (showChapterEndDialog) {
@@ -427,117 +436,229 @@ public class GameScreen implements Screen {
 
     private void drawGameUI() {
         Spieler currentPlayer = spiel.getCurrentPlayer();
-        game.font.setColor(Color.WHITE);
-        game.font.getData().setScale(1.0f);
-
-        float rightX = viewport.getWorldWidth() - 20;
-        float currentY = viewport.getWorldHeight() - 20;
-        
-        // Player info
-        String playerText = "Player: " + currentPlayer.getName();
-        glyphLayout.setText(game.font, playerText);
-        game.font.draw(game.batch, glyphLayout, rightX - glyphLayout.width, currentY);
-        currentY -= 30;
-
-        // Score
-        String scoreText = "Score: " + currentPlayer.getPunktzahl();
-        glyphLayout.setText(game.font, scoreText);
-        game.font.draw(game.batch, glyphLayout, rightX - glyphLayout.width, currentY);
-        currentY -= 30;
-
-        // Chapter
-        String chapterText = "Chapter: " + spiel.getAktuellesKapitelNummer();
-        glyphLayout.setText(game.font, chapterText);
-        game.font.draw(game.batch, glyphLayout, rightX - glyphLayout.width, currentY);
-        currentY -= 30;
-
-        // Tile count
-        String tileText = "Tiles: " + currentPlayerTileCount + "/24";
-        glyphLayout.setText(game.font, tileText);
-        game.font.draw(game.batch, glyphLayout, rightX - glyphLayout.width, currentY);
-        currentY -= 30;
-
-        // Current tile color indicator
-        if (currentCard != null && currentCard.getPlättchen() != null) {
-            String colorText = "Color: " + currentCard.getPlättchen().getColor().name();
-            glyphLayout.setText(game.font, colorText);
-            game.font.draw(game.batch, glyphLayout, rightX - glyphLayout.width, currentY);
-        }
-
-        // Button labels
-        drawButtonLabel("Rotate", rotateButton);
-        drawButtonLabel("Skip", skipButton);
-    }
-
-    private void drawProgressBars() {
         Spieler[] players = spiel.getSpieler();
-        float barWidth = 130;
-        float barHeight = 10;
-        float rightX = viewport.getWorldWidth() - 20;
-        float startY = viewport.getWorldHeight() - 175;
-
+        Spieler otherPlayer = players[0].equals(currentPlayer) ? players[1] : players[0];
+        
+        // Panel dimensions
+        float panelX = gridStartX + GRID_WORLD_SIZE + 15;
+        float panelY = gridStartY;
+        float panelWidth = viewport.getWorldWidth() - panelX - 10;
+        float panelHeight = GRID_WORLD_SIZE;
+        
+        // Draw main info panel background
         game.batch.end();
-
-        // Section title
+        game.shapeRenderer.setProjectionMatrix(camera.combined);
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        game.shapeRenderer.setColor(new Color(0.18f, 0.24f, 0.31f, 1f)); // Dark blue-gray background
+        game.shapeRenderer.rect(panelX, panelY, panelWidth, panelHeight);
+        game.shapeRenderer.end();
+        
+        // Draw panel border and accent line
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        game.shapeRenderer.setColor(new Color(0.3f, 0.5f, 0.7f, 1f)); // Blue accent line
+        game.shapeRenderer.rect(panelX, panelY + panelHeight - 3, panelWidth, 3);
+        game.shapeRenderer.end();
+        
         game.batch.begin();
-        game.font.setColor(Color.CYAN);
-        game.font.getData().setScale(0.85f);
-        glyphLayout.setText(game.font, "Progress to Victory");
-        game.font.draw(game.batch, glyphLayout, rightX - glyphLayout.width, startY);
+        
+        float textX = panelX + 15;
+        float textY = panelY + panelHeight - 20;
+        
+        // Title section
+        game.font.setColor(new Color(0.9f, 0.9f, 0.9f, 1f));
+        game.font.getData().setScale(1.1f);
+        game.font.draw(game.batch, "My City - Multiplayer", textX, textY);
+        textY -= 30;
+        
+        // Divider line
         game.batch.end();
-
-        float currentY = startY - 25;
-
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        game.shapeRenderer.setColor(new Color(0.3f, 0.4f, 0.5f, 0.5f));
+        game.shapeRenderer.rect(panelX + 10, textY - 5, panelWidth - 20, 1);
+        game.shapeRenderer.end();
+        game.batch.begin();
+        textY -= 15;
+        
+        // Current Player section
+        game.font.setColor(new Color(1f, 0.7f, 0.3f, 1f)); // Orange for player name
+        game.font.getData().setScale(0.85f);
+        game.font.draw(game.batch, "Current Player: " + currentPlayer.getName(), textX, textY);
+        textY -= 28;
+        
+        // Episode and Deck info on same line
+        game.font.setColor(new Color(0.85f, 0.85f, 0.85f, 1f));
+        game.font.getData().setScale(0.8f);
+        game.font.draw(game.batch, "Episode: " + spiel.getAktuellesKapitelNummer(), textX, textY);
+        
+        String deckText = "Deck: " + currentPlayerTileCount + "/24";
+        glyphLayout.setText(game.font, deckText);
+        game.font.draw(game.batch, deckText, panelX + panelWidth - 15 - glyphLayout.width, textY);
+        textY -= 25;
+        
+        // Another divider
+        game.batch.end();
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        game.shapeRenderer.setColor(new Color(0.3f, 0.4f, 0.5f, 0.5f));
+        game.shapeRenderer.rect(panelX + 10, textY - 5, panelWidth - 20, 1);
+        game.shapeRenderer.end();
+        game.batch.begin();
+        textY -= 15;
+        
+        // Scores section
+        game.font.setColor(new Color(0.9f, 0.9f, 0.9f, 1f));
+        game.font.getData().setScale(0.9f);
+        game.font.draw(game.batch, "Scores:", textX, textY);
+        textY -= 22;
+        
+        // Player scores with progress bars
         for (int i = 0; i < 2; i++) {
             Spieler player = players[i];
-
-            // Draw player name
-            game.batch.begin();
-            game.font.setColor(i == 0 ? new Color(0.4f, 0.7f, 1f, 1f) : new Color(1f, 0.6f, 0.3f, 1f));
+            boolean isCurrent = player.equals(currentPlayer);
+            
+            // Player name and score
+            game.font.setColor(isCurrent ? new Color(1f, 0.7f, 0.3f, 1f) : new Color(0.4f, 0.7f, 1f, 1f));
             game.font.getData().setScale(0.75f);
-            String nameText = player.getName();
-            glyphLayout.setText(game.font, nameText);
-            game.font.draw(game.batch, nameText, rightX - glyphLayout.width, currentY);
+            String playerText = player.getName() + ": " + player.getPunktzahl() + " pts";
+            game.font.draw(game.batch, playerText, textX, textY);
+            textY -= 18;
+            
+            // Progress bar
             game.batch.end();
-
-            currentY -= 18;
-
-            // Draw progress bar background
-            float barX = rightX - barWidth;
+            float barWidth = panelWidth - 30;
+            float barHeight = 8;
+            float barX = panelX + 15;
+            float barY = textY - 10;
+            
             game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            game.shapeRenderer.setColor(Color.DARK_GRAY);
-            game.shapeRenderer.rect(barX, currentY - 5, barWidth, barHeight);
-
-            // Draw progress bar fill
+            // Background
+            game.shapeRenderer.setColor(new Color(0.1f, 0.15f, 0.2f, 1f));
+            game.shapeRenderer.rect(barX, barY, barWidth, barHeight);
+            
+            // Fill
             float fillWidth = (player.getProgressPoints() / 100f) * barWidth;
-            if (i == 0) {
-                game.shapeRenderer.setColor(new Color(0.3f, 0.6f, 0.9f, 1f));
-            } else {
-                game.shapeRenderer.setColor(new Color(0.9f, 0.5f, 0.2f, 1f));
-            }
-            game.shapeRenderer.rect(barX, currentY - 5, fillWidth, barHeight);
+            game.shapeRenderer.setColor(isCurrent ? new Color(1f, 0.7f, 0.3f, 1f) : new Color(0.4f, 0.7f, 1f, 1f));
+            game.shapeRenderer.rect(barX, barY, fillWidth, barHeight);
             game.shapeRenderer.end();
-
-            // Draw progress bar border
-            game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-            game.shapeRenderer.setColor(Color.WHITE);
-            game.shapeRenderer.rect(barX, currentY - 5, barWidth, barHeight);
-            game.shapeRenderer.end();
-
-            // Draw progress value next to bar
+            
+            // Progress text
             game.batch.begin();
-            game.font.setColor(Color.WHITE);
-            game.font.getData().setScale(0.7f);
+            game.font.setColor(new Color(0.7f, 0.7f, 0.7f, 1f));
+            game.font.getData().setScale(0.65f);
             String progressText = player.getProgressPoints() + "/100";
             glyphLayout.setText(game.font, progressText);
-            game.font.draw(game.batch, progressText, barX - glyphLayout.width - 5, currentY + 3);
+            game.font.draw(game.batch, progressText, barX + barWidth - glyphLayout.width, barY + barHeight + 10);
+            
+            textY -= 20;
             game.batch.end();
-
-            currentY -= 20;
+            game.batch.begin();
         }
-
+        
+        textY -= 5;
+        
+        // Divider
+        game.batch.end();
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        game.shapeRenderer.setColor(new Color(0.3f, 0.4f, 0.5f, 0.5f));
+        game.shapeRenderer.rect(panelX + 10, textY - 5, panelWidth - 20, 1);
+        game.shapeRenderer.end();
         game.batch.begin();
-        game.font.getData().setScale(1.0f);
+        textY -= 15;
+        
+        // Piece Color section
+        game.font.setColor(new Color(0.9f, 0.9f, 0.9f, 1f));
+        game.font.getData().setScale(0.85f);
+        game.font.draw(game.batch, "Piece Color:", textX, textY);
+        
+        if (currentCard != null && currentCard.getPlättchen() != null) {
+            String colorName = currentCard.getPlättchen().getColor().name();
+            Color pieceColor = getColorForBuildingColor(currentCard.getPlättchen().getColor());
+            
+            game.font.setColor(new Color(0.85f, 0.85f, 0.85f, 1f));
+            game.font.getData().setScale(0.8f);
+            game.font.draw(game.batch, colorName, textX, textY - 18);
+            
+            // Draw color swatch
+            game.batch.end();
+            game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            game.shapeRenderer.setColor(pieceColor);
+            game.shapeRenderer.rect(textX + 75, textY - 28, 50, 20);
+            game.shapeRenderer.end();
+            
+            game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+            game.shapeRenderer.setColor(new Color(0.5f, 0.5f, 0.5f, 1f));
+            game.shapeRenderer.rect(textX + 75, textY - 28, 50, 20);
+            game.shapeRenderer.end();
+            game.batch.begin();
+        }
+        textY -= 45;
+        
+        // Tile Preview label
+        game.font.setColor(new Color(0.85f, 0.85f, 0.85f, 1f));
+        game.font.getData().setScale(0.85f);
+        game.font.draw(game.batch, "Tile Preview:", textX, textY);
+        textY -= 10;
+        
+        // Draw tile preview box background
+        game.batch.end();
+        game.shapeRenderer.setProjectionMatrix(camera.combined);
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        game.shapeRenderer.setColor(new Color(0.12f, 0.16f, 0.21f, 1f));
+        float previewBoxX = panelX + 10;
+        float previewBoxY = panelY + 140;
+        float previewBoxWidth = panelWidth - 20;
+        float previewBoxHeight = 200;
+        game.shapeRenderer.rect(previewBoxX, previewBoxY, previewBoxWidth, previewBoxHeight);
+        
+        // Preview box border
+        game.shapeRenderer.end();
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        game.shapeRenderer.setColor(new Color(0.3f, 0.5f, 0.7f, 1f));
+        game.shapeRenderer.rect(previewBoxX, previewBoxY, previewBoxWidth, previewBoxHeight);
+        game.shapeRenderer.end();
+        
+        // Draw help text in preview box if no card
+        if (currentCard == null || currentCard.getPlättchen() == null) {
+            game.batch.begin();
+            game.font.setColor(new Color(0.4f, 0.4f, 0.4f, 1f));
+            game.font.getData().setScale(0.75f);
+            String helpText = "Drag tile to board";
+            glyphLayout.setText(game.font, helpText);
+            game.font.draw(game.batch, helpText, 
+                previewBoxX + (previewBoxWidth - glyphLayout.width) / 2f,
+                previewBoxY + previewBoxHeight / 2f);
+            game.batch.end();
+        }
+        
+        // Draw buttons inside panel (below preview box)
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        game.shapeRenderer.setColor(new Color(0.3f, 0.5f, 0.7f, 1f));
+        game.shapeRenderer.rect(rotateButton.x, rotateButton.y, rotateButton.width, rotateButton.height);
+        game.shapeRenderer.rect(skipButton.x, skipButton.y, skipButton.width, skipButton.height);
+        game.shapeRenderer.end();
+        
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        game.shapeRenderer.setColor(new Color(0.5f, 0.7f, 0.9f, 1f));
+        game.shapeRenderer.rect(rotateButton.x, rotateButton.y, rotateButton.width, rotateButton.height);
+        game.shapeRenderer.rect(skipButton.x, skipButton.y, skipButton.width, skipButton.height);
+        game.shapeRenderer.end();
+        
+        game.batch.begin();
+        
+        // Draw button labels
+        game.font.setColor(Color.WHITE);
+        game.font.getData().setScale(0.85f);
+        
+        // Rotate button label
+        glyphLayout.setText(game.font, "Rotate [Q/E]");
+        float rotateTextX = rotateButton.x + (rotateButton.width - glyphLayout.width) / 2f;
+        float rotateTextY = rotateButton.y + (rotateButton.height + glyphLayout.height) / 2f;
+        game.font.draw(game.batch, "Rotate [Q/E]", rotateTextX, rotateTextY);
+        
+        // Skip button label
+        glyphLayout.setText(game.font, "Skip [P]");
+        float skipTextX = skipButton.x + (skipButton.width - glyphLayout.width) / 2f;
+        float skipTextY = skipButton.y + (skipButton.height + glyphLayout.height) / 2f;
+        game.font.draw(game.batch, "Skip [P]", skipTextX, skipTextY);
     }
 
     private void drawChapterEndDialog() {
@@ -582,11 +703,7 @@ public class GameScreen implements Screen {
     }
 
     private void drawGameButtons() {
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        game.shapeRenderer.setColor(Color.WHITE);
-        game.shapeRenderer.rect(rotateButton.x, rotateButton.y, rotateButton.width, rotateButton.height);
-        game.shapeRenderer.rect(skipButton.x, skipButton.y, skipButton.width, skipButton.height);
-        game.shapeRenderer.end();
+        // Buttons are now drawn inside drawGameUI() method
     }
 
     private void drawChapterEndButtons() {
@@ -675,6 +792,14 @@ public class GameScreen implements Screen {
     private void drawGrid(Stadtplan stadtplan) {
         gridStartY = (viewport.getWorldHeight() - GRID_WORLD_SIZE) / 2f;
 
+        // Draw board frame background (outer border)
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        game.shapeRenderer.setColor(new Color(0.25f, 0.32f, 0.4f, 1f)); // Dark blue-gray frame
+        float frameThickness = 15f;
+        game.shapeRenderer.rect(gridStartX - frameThickness, gridStartY - frameThickness, 
+                               GRID_WORLD_SIZE + frameThickness * 2, GRID_WORLD_SIZE + frameThickness * 2);
+        game.shapeRenderer.end();
+        
         // Draw base terrain and placed tiles
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (int i = 0; i < GRID_SIZE; i++) {
@@ -790,19 +915,22 @@ public class GameScreen implements Screen {
         viewport.update(width, height, true);
 
         float gridEndX = gridStartX + GRID_WORLD_SIZE;
-        float rightAreaWidth = viewport.getWorldWidth() - gridEndX;
-        float buttonWidth = 140;
+        float panelX = gridEndX + 15;
+        float panelWidth = viewport.getWorldWidth() - panelX - 10;
+        float buttonWidth = 120;
         float buttonHeight = 40;
         
+        // Position buttons inside panel, below preview box
+        float buttonY = gridStartY + 80;
+        float buttonSpacing = 10;
+        float totalButtonWidth = (buttonWidth * 2) + buttonSpacing;
+        float buttonStartX = panelX + (panelWidth - totalButtonWidth) / 2f;
+        
         // Position rotate button
-        float rotateX = gridEndX + (rightAreaWidth - buttonWidth) * 0.5f;
-        float rotateY = 90;
-        rotateButton.set(rotateX, rotateY, buttonWidth, buttonHeight);
+        rotateButton.set(buttonStartX, buttonY, buttonWidth, buttonHeight);
         
         // Position skip button
-        float skipX = gridEndX + (rightAreaWidth - buttonWidth) * 0.5f;
-        float skipY = 30;
-        skipButton.set(skipX, skipY, buttonWidth, buttonHeight);
+        skipButton.set(buttonStartX + buttonWidth + buttonSpacing, buttonY, buttonWidth, buttonHeight);
         
         // Position chapter end dialog buttons
         float centerX = viewport.getWorldWidth() / 2f;
