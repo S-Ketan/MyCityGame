@@ -432,7 +432,7 @@ public class GameScreen implements Screen {
 
         float rightX = viewport.getWorldWidth() - 20;
         float currentY = viewport.getWorldHeight() - 20;
-
+        
         // Player info
         String playerText = "Player: " + currentPlayer.getName();
         glyphLayout.setText(game.font, playerText);
@@ -770,9 +770,10 @@ public class GameScreen implements Screen {
     private Color getColorForGeländetyp(Geländetyp typ) {
         switch (typ) {
             case WIESE:
-                return Color.GREEN;
+                return new Color(43/255f, 84/255f, 56/255f, 1f);
             case BAUM:
-                return Color.FOREST;
+                return new Color(25/255f, 102/255f, 38/255f,1f);
+                // return Color.GREEN;
             case FELS:
                 return Color.GRAY;
             case GEBIRGE:
