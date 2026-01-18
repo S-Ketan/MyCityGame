@@ -14,14 +14,14 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.github.myCity.Main;
 import io.github.myCity.model.BuildingColor;
-import io.github.myCity.model.Feld;
-import io.github.myCity.model.Geländetyp;
+import io.github.myCity.model.Cell;
+import io.github.myCity.model.TerrainType;
 import io.github.myCity.model.Position;
-import io.github.myCity.model.Spiel;
-import io.github.myCity.model.Spieler;
-import io.github.myCity.model.Stadtplan;
+import io.github.myCity.model.Game;
+import io.github.myCity.model.Player;
+import io.github.myCity.model.CityGrid;
 import io.github.myCity.model.Sticker;
-import io.github.myCity.model.StickerTyp;
+import io.github.myCity.model.StickerType;
 import io.github.myCity.view.UIStyle;
 
 import java.util.HashSet;
@@ -33,7 +33,7 @@ import java.util.Set;
  */
 public class StickerPlacementScreen implements Screen {
     private final Main game;
-    private final Spiel spiel;
+    private final Game gameController;
     private final int completedEpisode;
     private final int winnerIndex;
     private final int loserIndex;
@@ -88,16 +88,16 @@ public class StickerPlacementScreen implements Screen {
     private boolean winnerPlaced = false;
     private boolean loserPlaced = false;
     private int currentPlacingPlayer; // Index of player currently placing
-    private StickerTyp currentStickerType;
+    private StickerType currentStickerType;
     private String currentPlayerRole; // "winner" or "loser"
 
     // Grid positions on screen
     private float gridStartX;
     private float gridStartY;
 
-    public StickerPlacementScreen(Main game, Spiel spiel, int completedEpisode, int winnerIndex) {
+    public StickerPlacementScreen(Main game, Game gameController, int completedEpisode, int winnerIndex) {
         this.game = game;
-        this.spiel = spiel;
+        this.gameController = gameController;
         this.completedEpisode = completedEpisode;
         this.winnerIndex = winnerIndex;
         this.loserIndex = (winnerIndex == 0) ? 1 : 0;
@@ -107,7 +107,7 @@ public class StickerPlacementScreen implements Screen {
 
         // Winner places first (ROCK sticker - penalty)
         currentPlacingPlayer = winnerIndex;
-        currentStickerType = StickerTyp.FELS_HINZUFÜGEN;
+        currentStickerType = StickerType.ADD_ROCK;
         currentPlayerRole = "winner";
     }
 
@@ -140,20 +140,20 @@ public class StickerPlacementScreen implements Screen {
         for (Position validPos : VALID_STICKER_POSITIONS) {
             if (validPos.getX() == pos.getX() && validPos.getY() == pos.getY()) {
                 // Check if position doesn't already have a sticker
-                Stadtplan stadtplan = spiel.getSpieler()[currentPlacingPlayer].getStadtplan();
-                Feld feld = stadtplan.getFeld(pos.getX(), pos.getY());
-                if (feld != null) {
-                    // Check terrain - only allow on WIESE
-                    if (feld.getGelände() != Geländetyp.WIESE) {
+                CityGrid cityGrid = gameController.getPlayers()[currentPlacingPlayer].getCityGrid();
+                Cell cell = cityGrid.getCell(pos.getX(), pos.getY());
+                if (cell != null) {
+                    // Check terrain - only allow on MEADOW
+                    if (cell.getTerrain() != TerrainType.MEADOW) {
                         return false;
                     }
-                    // Brunnen cannot be placed next to a river
-                    if (currentStickerType == StickerTyp.BRUNNEN && isAdjacentToRiver(stadtplan, pos.getX(), pos.getY())) {
+                    // Well cannot be placed next to a river
+                    if (currentStickerType == StickerType.WELL && isAdjacentToRiver(cityGrid, pos.getX(), pos.getY())) {
                         return false;
                     }
                     // Check for existing stickers
-                    for (Sticker s : stadtplan.getSticker()) {
-                        if (s.getPos().getX() == pos.getX() && s.getPos().getY() == pos.getY()) {
+                    for (Sticker s : cityGrid.getStickers()) {
+                        if (s.getPosition().getX() == pos.getX() && s.getPosition().getY() == pos.getY()) {
                             return false;
                         }
                     }
@@ -167,42 +167,42 @@ public class StickerPlacementScreen implements Screen {
     /**
      * Checks if the given position is adjacent to a river.
      */
-    private boolean isAdjacentToRiver(Stadtplan stadtplan, int x, int y) {
-        Feld feld = stadtplan.getFeld(x, y);
-        if (feld != null && feld.hatFluss()) {
+    private boolean isAdjacentToRiver(CityGrid cityGrid, int x, int y) {
+        Cell cell = cityGrid.getCell(x, y);
+        if (cell != null && cell.hasRiver()) {
             return true;
         }
 
         // Check all 4 neighbors for river edges
-        Feld top = stadtplan.getFeld(x, y + 1);
-        Feld bottom = stadtplan.getFeld(x, y - 1);
-        Feld left = stadtplan.getFeld(x - 1, y);
-        Feld right = stadtplan.getFeld(x + 1, y);
+        Cell top = cityGrid.getCell(x, y + 1);
+        Cell bottom = cityGrid.getCell(x, y - 1);
+        Cell left = cityGrid.getCell(x - 1, y);
+        Cell right = cityGrid.getCell(x + 1, y);
 
-        if (top != null && top.hatFluss()) return true;
-        if (bottom != null && bottom.hatFluss()) return true;
-        if (left != null && left.hatFluss()) return true;
-        if (right != null && right.hatFluss()) return true;
+        if (top != null && top.hasRiver()) return true;
+        if (bottom != null && bottom.hasRiver()) return true;
+        if (left != null && left.hasRiver()) return true;
+        if (right != null && right.hasRiver()) return true;
 
         return false;
     }
 
     private void placeSticker(Position pos) {
-        Spieler player = spiel.getSpieler()[currentPlacingPlayer];
+        Player player = gameController.getPlayers()[currentPlacingPlayer];
         String description;
         String stickerName;
-        if (currentStickerType == StickerTyp.FELS_HINZUFÜGEN) {
+        if (currentStickerType == StickerType.ADD_ROCK) {
             description = "rock_chapter1";
             stickerName = "ROCK";
-        } else if (currentStickerType == StickerTyp.BRUNNEN) {
-            description = "brunnen_episode3";
-            stickerName = "BRUNNEN";
+        } else if (currentStickerType == StickerType.WELL) {
+            description = "well_episode3";
+            stickerName = "WELL";
         } else {
             description = "tree_chapter1";
             stickerName = "TREE";
         }
         Sticker sticker = new Sticker(currentStickerType, pos, description);
-        player.getStadtplan().addSticker(sticker);
+        player.getCityGrid().addSticker(sticker);
 
         Gdx.app.log("StickerPlacement", player.getName() + " placed " + stickerName +
                    " sticker at (" + pos.getX() + ", " + pos.getY() + ")");
@@ -211,11 +211,11 @@ public class StickerPlacementScreen implements Screen {
             // Winner just placed, now loser's turn
             winnerPlaced = true;
             currentPlacingPlayer = loserIndex;
-            // Episode 3: Loser places BRUNNEN instead of TREE
+            // Episode 3: Loser places WELL instead of TREE
             if (completedEpisode == 3) {
-                currentStickerType = StickerTyp.BRUNNEN;
+                currentStickerType = StickerType.WELL;
             } else {
-                currentStickerType = StickerTyp.BAUM_HINZUFÜGEN;
+                currentStickerType = StickerType.ADD_TREE;
             }
             currentPlayerRole = "loser";
         } else {
@@ -227,9 +227,9 @@ public class StickerPlacementScreen implements Screen {
 
     private void proceedToNextEpisode() {
         // Clear both players' boards (but stickers remain)
-        for (Spieler player : spiel.getSpieler()) {
-            player.getStadtplan().clearBuildings();
-            player.resetÜbersprungeneGebäude();
+        for (Player player : gameController.getPlayers()) {
+            player.getCityGrid().clearBuildings();
+            player.resetSkippedBuildings();
         }
 
         int nextEpisode = completedEpisode + 1;
@@ -238,19 +238,19 @@ public class StickerPlacementScreen implements Screen {
             // Chapter 1 complete - go to chapter end summary
             Gdx.app.log("StickerPlacement", "Chapter 1 complete! Moving to Chapter 2...");
             // Load episode 4 and continue
-            spiel.resetEpisodeTracking();
-            spiel.kapitelLaden(4, true);
-            game.setScreen(new GameScreen(game, spiel));
+            gameController.resetEpisodeTracking();
+            gameController.loadEpisode(4, true);
+            game.setScreen(new GameScreen(game, gameController));
         } else if (nextEpisode == 3) {
-            // Before Episode 3, each player places a Brunnen
-            Gdx.app.log("StickerPlacement", "Going to Brunnen placement before Episode 3");
-            game.setScreen(new BrunnenPlacementScreen(game, spiel));
+            // Before Episode 3, each player places a Well
+            Gdx.app.log("StickerPlacement", "Going to Well placement before Episode 3");
+            game.setScreen(new WellPlacementScreen(game, gameController));
         } else {
             // Continue to next episode in chapter 1
             Gdx.app.log("StickerPlacement", "Loading Episode " + nextEpisode);
-            spiel.resetEpisodeTracking();
-            spiel.kapitelLaden(nextEpisode, true);
-            game.setScreen(new GameScreen(game, spiel));
+            gameController.resetEpisodeTracking();
+            gameController.loadEpisode(nextEpisode, true);
+            game.setScreen(new GameScreen(game, gameController));
         }
     }
 
@@ -276,15 +276,15 @@ public class StickerPlacementScreen implements Screen {
         gridStartX = 50;
         gridStartY = (viewport.getWorldHeight() - GRID_WORLD_SIZE) / 2f;
 
-        Stadtplan stadtplan = spiel.getSpieler()[currentPlacingPlayer].getStadtplan();
+        CityGrid cityGrid = gameController.getPlayers()[currentPlacingPlayer].getCityGrid();
 
         // Draw base terrain
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (int x = 0; x < GRID_SIZE; x++) {
             for (int y = 0; y < GRID_SIZE; y++) {
-                Feld feld = stadtplan.getFeld(x, y);
-                if (feld != null) {
-                    game.shapeRenderer.setColor(getColorForGeländetyp(feld.getGelände()));
+                Cell cell = cityGrid.getCell(x, y);
+                if (cell != null) {
+                    game.shapeRenderer.setColor(getColorForTerrainType(cell.getTerrain()));
                     game.shapeRenderer.rect(gridStartX + x * TILE_SIZE, gridStartY + y * TILE_SIZE,
                                            TILE_SIZE, TILE_SIZE);
                 }
@@ -294,7 +294,7 @@ public class StickerPlacementScreen implements Screen {
 
         // Highlight valid sticker positions
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        Color highlightColor = currentStickerType == StickerTyp.FELS_HINZUFÜGEN ?
+        Color highlightColor = currentStickerType == StickerType.ADD_ROCK ?
                       new Color(UIStyle.ACCENT.r, UIStyle.ACCENT.g, UIStyle.ACCENT.b, 0.28f)
                       : new Color(UIStyle.POSITIVE.r, UIStyle.POSITIVE.g, UIStyle.POSITIVE.b, 0.35f);
 
@@ -323,8 +323,8 @@ public class StickerPlacementScreen implements Screen {
     }
 
     private void drawUI() {
-        Spieler currentPlayer = spiel.getSpieler()[currentPlacingPlayer];
-        String stickerName = currentStickerType == StickerTyp.FELS_HINZUFÜGEN ? "ROCK" : "TREE";
+        Player currentPlayer = gameController.getPlayers()[currentPlacingPlayer];
+        String stickerName = currentStickerType == StickerType.ADD_ROCK ? "ROCK" : "TREE";
 
         game.font.setColor(UIStyle.PRIMARY_TEXT);
         game.font.getData().setScale(1.5f);
@@ -362,7 +362,7 @@ public class StickerPlacementScreen implements Screen {
         // Explain the rule
         game.font.setColor(UIStyle.SECONDARY_TEXT);
         game.font.getData().setScale(0.9f);
-        if (currentStickerType == StickerTyp.FELS_HINZUFÜGEN) {
+        if (currentStickerType == StickerType.ADD_ROCK) {
             game.font.draw(game.batch, "Rock = -1 point if visible", rightX, currentY);
         } else {
             game.font.draw(game.batch, "Tree = +1 point if visible", rightX, currentY);
@@ -376,24 +376,24 @@ public class StickerPlacementScreen implements Screen {
         currentY -= 25;
 
         for (int i = 0; i < 2; i++) {
-            Spieler p = spiel.getSpieler()[i];
-            String scoreText = p.getName() + ": " + p.getPunktzahl();
+            Player p = gameController.getPlayers()[i];
+            String scoreText = p.getName() + ": " + p.getScore();
             game.font.draw(game.batch, scoreText, rightX, currentY);
             currentY -= 20;
         }
     }
 
-    private Color getColorForGeländetyp(Geländetyp typ) {
-        switch (typ) {
-            case WIESE:
+    private Color getColorForTerrainType(TerrainType type) {
+        switch (type) {
+            case MEADOW:
                 return Color.GREEN;
-            case BAUM:
+            case TREE:
                 return Color.FOREST;
-            case FELS:
+            case ROCK:
                 return Color.GRAY;
-            case GEBIRGE:
+            case MOUNTAIN:
                 return Color.DARK_GRAY;
-            case WALD:
+            case FOREST:
                 return new Color(0, 0.5f, 0, 1);
             default:
                 return Color.WHITE;

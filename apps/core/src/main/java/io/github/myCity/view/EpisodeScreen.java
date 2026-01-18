@@ -12,7 +12,10 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.github.myCity.Main;
 
-public class KapitelScreen implements Screen {
+/**
+ * Screen for selecting which episode to play.
+ */
+public class EpisodeScreen implements Screen {
     private final Main game;
     private final OrthographicCamera camera;
     private final Viewport viewport;
@@ -22,23 +25,23 @@ public class KapitelScreen implements Screen {
     private static final float VIRTUAL_HEIGHT = 600;
 
     private final Rectangle backButton;
-    private final Rectangle[] kapitelButtons;
+    private final Rectangle[] episodeButtons;
 
-    public KapitelScreen(Main game) {
+    public EpisodeScreen(Main game) {
         this.game = game;
         camera = new OrthographicCamera();
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
         touchPoint = new Vector3();
-        
-        float kapitelButtonWidth = 100;
-        float kapitelButtonX = (VIRTUAL_WIDTH - kapitelButtonWidth) / 2;
-        float kapitelStartY = VIRTUAL_HEIGHT / 2 + 100; // A bit above center
 
-        kapitelButtons = new Rectangle[8];
+        float episodeButtonWidth = 100;
+        float episodeButtonX = (VIRTUAL_WIDTH - episodeButtonWidth) / 2;
+        float episodeStartY = VIRTUAL_HEIGHT / 2 + 100;
+
+        episodeButtons = new Rectangle[8];
         for (int i = 0; i < 8; i++) {
-            kapitelButtons[i] = new Rectangle(kapitelButtonX, kapitelStartY - (i + 1) * 30 - 15, kapitelButtonWidth, 20);
+            episodeButtons[i] = new Rectangle(episodeButtonX, episodeStartY - (i + 1) * 30 - 15, episodeButtonWidth, 20);
         }
-        backButton = new Rectangle(kapitelButtonX, kapitelStartY - 9 * 30 - 15, kapitelButtonWidth, 20);
+        backButton = new Rectangle(episodeButtonX, episodeStartY - 9 * 30 - 15, episodeButtonWidth, 20);
     }
 
     @Override
@@ -52,31 +55,31 @@ public class KapitelScreen implements Screen {
         camera.update();
         game.batch.setProjectionMatrix(camera.combined);
 
-        renderKapitel();
-        handleKapitelInput();
+        renderEpisodeSelection();
+        handleEpisodeInput();
     }
 
-    private void renderKapitel() {
+    private void renderEpisodeSelection() {
         game.batch.begin();
         game.font.getData().setScale(1.5f);
         game.font.setColor(Color.WHITE);
-        
+
         for (int i = 0; i < 8; i++) {
-            game.font.draw(game.batch, "Kapitel " + (i + 1), kapitelButtons[i].x, kapitelButtons[i].y + 15);
+            game.font.draw(game.batch, "Episode " + (i + 1), episodeButtons[i].x, episodeButtons[i].y + 15);
         }
         game.font.draw(game.batch, "Back", backButton.x, backButton.y + 15);
         game.batch.end();
     }
 
-    private void handleKapitelInput() {
+    private void handleEpisodeInput() {
          if (Gdx.input.isButtonJustPressed(0)) {
             touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0);
             camera.unproject(touchPoint);
 
             for (int i = 0; i < 8; i++) {
-                 if(kapitelButtons[i].contains(touchPoint.x, touchPoint.y)) {
-                     Gdx.app.log("Kapitel", "Kapitel " + (i + 1) + " clicked");
-                     // Here you would start the selected chapter
+                 if(episodeButtons[i].contains(touchPoint.x, touchPoint.y)) {
+                     Gdx.app.log("Episode", "Episode " + (i + 1) + " clicked");
+                     // Here you would start the selected episode
                  }
             }
              if (backButton.contains(touchPoint.x, touchPoint.y)) {

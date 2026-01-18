@@ -18,21 +18,21 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.github.myCity.Main;
-import io.github.myCity.model.Spiel;
-import io.github.myCity.model.Spieler;
+import io.github.myCity.model.Game;
+import io.github.myCity.model.Player;
 
 /**
  * Screen displayed at the end of each chapter showing detailed score breakdown.
  */
 public class ChapterEndScreen implements Screen {
     private final Main game;
-    private final Spiel spiel;
+    private final Game gameController;
     private final int chapterNumber;
     private final int[] progressAwarded;
 
     // Episode bonuses (calculated in constructor)
     private final int[] colorBonus;
-    private final int[] brunnenBonus;
+    private final int[] wellBonus;
 
     private final OrthographicCamera camera;
     private final Viewport viewport;
@@ -46,38 +46,38 @@ public class ChapterEndScreen implements Screen {
      * Creates a new chapter end screen.
      *
      * @param game The main game instance
-     * @param spiel The game state
+     * @param gameController The game controller
      * @param chapterNumber The chapter that was just completed
      */
-    public ChapterEndScreen(Main game, Spiel spiel, int chapterNumber) {
+    public ChapterEndScreen(Main game, Game gameController, int chapterNumber) {
         this.game = game;
-        this.spiel = spiel;
+        this.gameController = gameController;
         this.chapterNumber = chapterNumber;
 
-        Spieler[] players = spiel.getSpieler();
+        Player[] players = gameController.getPlayers();
 
         // Calculate and apply episode bonuses BEFORE awarding progress points
         colorBonus = new int[2];
-        brunnenBonus = new int[2];
+        wellBonus = new int[2];
 
         // Episode 2+: Connected color bonus
         if (chapterNumber >= 2) {
-            colorBonus[0] = players[0].getStadtplan().berechneVerbundeneFarbenBonus();
-            colorBonus[1] = players[1].getStadtplan().berechneVerbundeneFarbenBonus();
-            players[0].setPunktzahl(players[0].getPunktzahl() + colorBonus[0]);
-            players[1].setPunktzahl(players[1].getPunktzahl() + colorBonus[1]);
+            colorBonus[0] = players[0].getCityGrid().calculateConnectedColorBonus();
+            colorBonus[1] = players[1].getCityGrid().calculateConnectedColorBonus();
+            players[0].setScore(players[0].getScore() + colorBonus[0]);
+            players[1].setScore(players[1].getScore() + colorBonus[1]);
         }
 
-        // Episode 3: Brunnen bonus
+        // Episode 3: Well bonus
         if (chapterNumber == 3) {
-            brunnenBonus[0] = players[0].getStadtplan().berechneBrunnenBonus();
-            brunnenBonus[1] = players[1].getStadtplan().berechneBrunnenBonus();
-            players[0].setPunktzahl(players[0].getPunktzahl() + brunnenBonus[0]);
-            players[1].setPunktzahl(players[1].getPunktzahl() + brunnenBonus[1]);
+            wellBonus[0] = players[0].getCityGrid().calculateWellBonus();
+            wellBonus[1] = players[1].getCityGrid().calculateWellBonus();
+            players[0].setScore(players[0].getScore() + wellBonus[0]);
+            players[1].setScore(players[1].getScore() + wellBonus[1]);
         }
 
         // Award progress points AFTER all bonuses are applied
-        this.progressAwarded = spiel.awardProgressPoints();
+        this.progressAwarded = gameController.awardProgressPoints();
 
         camera = new OrthographicCamera();
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
@@ -185,7 +185,7 @@ public class ChapterEndScreen implements Screen {
         scoresTable.pad(12);
 
         // Player headers
-        Spieler[] players = spiel.getSpieler();
+        Player[] players = gameController.getPlayers();
 
         // Empty cell for row labels
         scoresTable.add(new Label("", skin)).width(200).pad(5);
@@ -200,23 +200,23 @@ public class ChapterEndScreen implements Screen {
         addScoreRow(scoresTable, "Base Score", 10, 10, "default");
 
         // Trees with small icon
-        int trees1 = players[0].getStadtplan().bäumeZählen();
-        int trees2 = players[1].getStadtplan().bäumeZählen();
+        int trees1 = players[0].getCityGrid().countTrees();
+        int trees2 = players[1].getCityGrid().countTrees();
         addScoreRowWithIcon(scoresTable, "Trees", "treeIcon", trees1, trees2, "positive");
 
         // Rocks (negative) with icon
-        int rocks1 = players[0].getStadtplan().felsenZählen();
-        int rocks2 = players[1].getStadtplan().felsenZählen();
+        int rocks1 = players[0].getCityGrid().countRocks();
+        int rocks2 = players[1].getCityGrid().countRocks();
         addScoreRowWithIcon(scoresTable, "Rocks", "rockIcon", rocks1, rocks2, "negative");
 
         // Empty spaces (negative)
-        int empty1 = players[0].getStadtplan().leereWiesenZählen();
-        int empty2 = players[1].getStadtplan().leereWiesenZählen();
+        int empty1 = players[0].getCityGrid().countEmptyMeadows();
+        int empty2 = players[1].getCityGrid().countEmptyMeadows();
         addScoreRow(scoresTable, "Empty Spaces", empty1, empty2, "negative");
 
         // Skipped buildings (negative)
-        int skipped1 = -players[0].getÜbersprungeneGebäude();
-        int skipped2 = -players[1].getÜbersprungeneGebäude();
+        int skipped1 = -players[0].getSkippedBuildings();
+        int skipped2 = -players[1].getSkippedBuildings();
         addScoreRow(scoresTable, "Skipped Buildings", skipped1, skipped2, "negative");
 
         // Episode 2+: Connected color bonus (pre-calculated in constructor)
@@ -224,23 +224,23 @@ public class ChapterEndScreen implements Screen {
             addScoreRow(scoresTable, "Connected Colors", colorBonus[0], colorBonus[1], "positive");
         }
 
-        // Episode 3: Brunnen bonus (pre-calculated in constructor)
+        // Episode 3: Well bonus (pre-calculated in constructor)
         if (chapterNumber == 3) {
-            addScoreRow(scoresTable, "Brunnen Bonus", brunnenBonus[0], brunnenBonus[1], "positive");
+            addScoreRow(scoresTable, "Well Bonus", wellBonus[0], wellBonus[1], "positive");
         }
 
         // Add separator
         scoresTable.add(new Label("===================", skin)).colspan(3).row();
 
         // Total score (already includes bonuses applied in constructor)
-        addScoreRow(scoresTable, "TOTAL SCORE", players[0].getPunktzahl(),
-                    players[1].getPunktzahl(), "total");
+        addScoreRow(scoresTable, "TOTAL SCORE", players[0].getScore(),
+                    players[1].getScore(), "total");
 
         mainTable.add(scoresTable).colspan(3).padBottom(30).row();
 
         // Winner announcement (if applicable)
-        int score1 = players[0].getPunktzahl();
-        int score2 = players[1].getPunktzahl();
+        int score1 = players[0].getScore();
+        int score2 = players[1].getScore();
         String resultText;
         String winnerName;
         String loserName;
@@ -288,7 +288,7 @@ public class ChapterEndScreen implements Screen {
         mainTable.add(progressTable).colspan(3).padBottom(15).row();
 
         // Check for game winner
-        Spieler gameWinner = spiel.checkForGameWinner();
+        Player gameWinner = gameController.checkForGameWinner();
         if (gameWinner != null) {
             Label gameWinnerLabel = new Label(gameWinner.getName() + " WINS THE GAME!", skin, "title");
             gameWinnerLabel.setFontScale(1.5f);
@@ -316,7 +316,7 @@ public class ChapterEndScreen implements Screen {
         saveButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                spiel.spielstandSpeichern();
+                gameController.saveGameState();
                 Gdx.app.log("ChapterEnd", "Game saved!");
                 startNextChapter();
             }
@@ -394,9 +394,9 @@ public class ChapterEndScreen implements Screen {
      *
      * @return index of winner (0 or 1), defaults to 0 if complete tie
      */
-    private int resolveTiebreakerForWinner(Spieler[] players) {
-        int[] player1EmptyPerRow = players[0].getStadtplan().countEmptyWiesePerRow();
-        int[] player2EmptyPerRow = players[1].getStadtplan().countEmptyWiesePerRow();
+    private int resolveTiebreakerForWinner(Player[] players) {
+        int[] player1EmptyPerRow = players[0].getCityGrid().countEmptyMeadowsPerRow();
+        int[] player2EmptyPerRow = players[1].getCityGrid().countEmptyMeadowsPerRow();
 
         // Compare row by row from top (index 0) to bottom (index 10)
         for (int row = 0; row < 11; row++) {
@@ -421,10 +421,10 @@ public class ChapterEndScreen implements Screen {
 
     private void startNextChapter() {
         // Check if someone won the game
-        Spieler gameWinner = spiel.checkForGameWinner();
+        Player gameWinner = gameController.checkForGameWinner();
         if (gameWinner != null) {
             Gdx.app.log("ChapterEnd", gameWinner.getName() + " has won the game with 100 progress points!");
-            spiel.endpunkteBerechnen();
+            gameController.calculateFinalScores();
             game.setScreen(new MenuScreen(game));
             return;
         }
@@ -433,7 +433,7 @@ public class ChapterEndScreen implements Screen {
 
         if (nextChapter > 24) {
             // Game completed - show final results
-            spiel.endpunkteBerechnen();
+            gameController.calculateFinalScores();
             Gdx.app.log("ChapterEnd", "All chapters completed! Returning to menu...");
             game.setScreen(new MenuScreen(game));
             return;
@@ -443,9 +443,9 @@ public class ChapterEndScreen implements Screen {
         if (chapterNumber >= 1 && chapterNumber <= 3) {
             // Determine winner (higher score wins, gets ROCK penalty)
             // On tie, use tiebreaker: fewer empty green spaces in top row wins
-            Spieler[] players = spiel.getSpieler();
-            int score1 = players[0].getPunktzahl();
-            int score2 = players[1].getPunktzahl();
+            Player[] players = gameController.getPlayers();
+            int score1 = players[0].getScore();
+            int score2 = players[1].getScore();
 
             int winnerIndex;
             if (score1 > score2) {
@@ -461,18 +461,18 @@ public class ChapterEndScreen implements Screen {
                        players[winnerIndex].getName() + " - Going to sticker placement");
 
             // Go to sticker placement screen
-            game.setScreen(new StickerPlacementScreen(game, spiel, chapterNumber, winnerIndex));
+            game.setScreen(new StickerPlacementScreen(game, gameController, chapterNumber, winnerIndex));
             return;
         }
 
         // For episodes 4+: Continue normally
-        spiel.resetEpisodeTracking();
-        spiel.kapitelLaden(nextChapter, true);
+        gameController.resetEpisodeTracking();
+        gameController.loadEpisode(nextChapter, true);
 
         Gdx.app.log("ChapterEnd", "Starting Chapter " + nextChapter);
 
         // Return to game screen
-        game.setScreen(new GameScreen(game, spiel));
+        game.setScreen(new GameScreen(game, gameController));
     }
 
     @Override

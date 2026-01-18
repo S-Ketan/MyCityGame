@@ -1,29 +1,29 @@
 package io.github.myCity.model;
 
 /**
- * Repräsentiert einen Sticker, der auf dem Stadtplan platziert oder verdient werden kann.
+ * Represents a sticker that can be placed on or earned for the city grid.
  */
 public class Sticker {
 
-    private final StickerTyp typ;
-    private final Position pos;
-    private final String effektBeschreibung;
+    private final StickerType type;
+    private final Position position;
+    private final String effectDescription;
 
-    public Sticker(StickerTyp typ, Position pos, String effektBeschreibung) {
-        this.typ = typ;
-        this.pos = pos;
-        this.effektBeschreibung = effektBeschreibung;
+    public Sticker(StickerType type, Position position, String effectDescription) {
+        this.type = type;
+        this.position = position;
+        this.effectDescription = effectDescription;
     }
 
-    public StickerTyp getTyp() {
-        return typ;
+    public StickerType getType() {
+        return type;
     }
 
-    public Position getPos() {
-        return pos;
+    public Position getPosition() {
+        return position;
     }
 
-    public String getEffektBeschreibung() {
-        return effektBeschreibung;
+    public String getEffectDescription() {
+        return effectDescription;
     }
 }

@@ -15,15 +15,16 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.github.myCity.Main;
+import io.github.myCity.model.BuildingCard;
 import io.github.myCity.model.BuildingColor;
-import io.github.myCity.model.Feld;
-import io.github.myCity.model.Gebäudekarte;
-import io.github.myCity.model.Geländetyp;
-import io.github.myCity.model.Plättchen;
+import io.github.myCity.model.Cell;
+import io.github.myCity.model.CityGrid;
+import io.github.myCity.model.Game;
+import io.github.myCity.model.Player;
 import io.github.myCity.model.Position;
-import io.github.myCity.model.Spiel;
-import io.github.myCity.model.Spieler;
-import io.github.myCity.model.Stadtplan;
+import io.github.myCity.model.StickerType;
+import io.github.myCity.model.TerrainType;
+import io.github.myCity.model.Tile;
 
 public class GameScreen implements Screen {
     private final Main game;
@@ -33,8 +34,8 @@ public class GameScreen implements Screen {
 
     private final OrthographicCamera camera;
     private final Viewport viewport;
-    private final Spiel spiel;
-    private Gebäudekarte currentCard;
+    private final Game gameController;
+    private BuildingCard currentCard;
     private final GlyphLayout glyphLayout = new GlyphLayout();
     private final Rectangle skipButton;
     private final Rectangle rotateButton;
@@ -58,9 +59,9 @@ public class GameScreen implements Screen {
 
     public GameScreen(Main game, String player1Name, String player2Name) {
         this.game = game;
-        this.spiel = new Spiel();
-        this.spiel.neuesSpielStarten(player1Name, player2Name);
-        this.currentCard = spiel.getAktuellesKapitel().zieheKarte();
+        this.gameController = new Game();
+        this.gameController.startNewGame(player1Name, player2Name);
+        this.currentCard = gameController.getCurrentEpisode().drawCard();
 
         camera = new OrthographicCamera();
         viewport = new FitViewport(GRID_WORLD_SIZE + 300, GRID_WORLD_SIZE + 100, camera);
@@ -77,10 +78,10 @@ public class GameScreen implements Screen {
     /**
      * Constructor for continuing an existing game (e.g., after chapter end screen).
      */
-    public GameScreen(Main game, Spiel existingSpiel) {
+    public GameScreen(Main game, Game existingGame) {
         this.game = game;
-        this.spiel = existingSpiel;
-        this.currentCard = spiel.getAktuellesKapitel().zieheKarte();
+        this.gameController = existingGame;
+        this.currentCard = gameController.getCurrentEpisode().drawCard();
         this.currentPlayerTileCount = 0;
         this.isFirstTileForPlayer = true;
 
@@ -187,10 +188,10 @@ public class GameScreen implements Screen {
     private boolean isTileClicked(Vector2 worldPos) {
         if (currentCard == null) return false;
         
-        Plättchen plättchen = currentCard.getPlättchen();
-        if (plättchen == null) return false;
+        Tile tile = currentCard.getTile();
+        if (tile == null) return false;
         
-        boolean[][] form = plättchen.getForm();
+        boolean[][] form = tile.getShape();
         
         // Check if any cell of the tile is clicked
         for (int i = 0; i < form.length; i++) {
@@ -213,8 +214,8 @@ public class GameScreen implements Screen {
     private void tryPlaceTile(Vector2 worldPos) {
         if (currentCard == null) return;
         
-        Plättchen plättchen = currentCard.getPlättchen();
-        if (plättchen == null) return;
+        Tile tile = currentCard.getTile();
+        if (tile == null) return;
         
         // Convert tile position (top-left corner) to grid coordinates
         int gridX = Math.round((tilePosition.x - gridStartX) / TILE_SIZE);
@@ -225,7 +226,7 @@ public class GameScreen implements Screen {
         //Gdx.app.log("Game", "Trying to place tile at grid position: (" + gridX + ", " + gridY + ")");
         
         // Check if tile would be mostly outside the grid - if so, return to original position
-        boolean[][] form = plättchen.getForm();
+        boolean[][] form = tile.getShape();
         int validCells = 0;
         int totalCells = 0;
         
@@ -252,20 +253,20 @@ public class GameScreen implements Screen {
         Position pos = new Position(gridX, gridY);
         
         // Check if placement is valid using game rules
-        boolean isValid = spiel.getAktuellesKapitel().istPlatzierungGültig(
-            plättchen,
-            spiel.getCurrentPlayer().getStadtplan(),
+        boolean isValid = gameController.getCurrentEpisode().isPlacementValid(
+            tile,
+            gameController.getCurrentPlayer().getCityGrid(),
             pos,
             isFirstTileForPlayer
         );
         
         if (isValid) {
             // Place the tile
-            spiel.getCurrentPlayer().plaettchenLegen(plättchen, pos);
+            gameController.getCurrentPlayer().placeTile(tile, pos);
             //Gdx.app.log("Game", "✓ Tile placed successfully at (" + gridX + ", " + gridY + ")");
 
             // Update score to reflect placement
-            spiel.refreshScore(spiel.getAktuellerSpielerIndex());
+            gameController.refreshScore(gameController.getCurrentPlayerIndex());
             
             isFirstTileForPlayer = false;
             currentPlayerTileCount++;
@@ -275,7 +276,7 @@ public class GameScreen implements Screen {
                 handlePlayerFinished();
             } else {
                 // Draw next tile for same player
-                currentCard = spiel.getAktuellesKapitel().zieheKarte();
+                currentCard = gameController.getCurrentEpisode().drawCard();
                 resetTilePosition();
             }
         } else {
@@ -288,8 +289,8 @@ public class GameScreen implements Screen {
 
 
     private void handlePlayerFinished() {
-        Spieler currentPlayer = spiel.getCurrentPlayer();
-        int currentPlayerIndex = spiel.getAktuellerSpielerIndex();
+        Player currentPlayer = gameController.getCurrentPlayer();
+        int currentPlayerIndex = gameController.getCurrentPlayerIndex();
         
         Gdx.app.log("Game", currentPlayer.getName() + " (Player " + (currentPlayerIndex + 1) + ") finished all 24 tiles!");
         
@@ -304,14 +305,14 @@ public class GameScreen implements Screen {
             isFirstTileForPlayer = true;
 
             // Switch to player 2 BEFORE resetting the deck
-            spiel.wechselSpieler();
+            gameController.switchPlayer();
 
             // Reset the deck to the original order for player 2 (same tiles as player 1)
-            spiel.resetDeckForNextPlayer();
-            currentCard = spiel.getAktuellesKapitel().zieheKarte();
+            gameController.resetDeckForNextPlayer();
+            currentCard = gameController.getCurrentEpisode().drawCard();
             resetTilePosition();
 
-            Gdx.app.log("Game", "Now it's " + spiel.getCurrentPlayer().getName() + "'s turn with the same deck!");
+            Gdx.app.log("Game", "Now it's " + gameController.getCurrentPlayer().getName() + "'s turn with the same deck!");
         } else {
             // Player 2 finished, chapter is complete
             Gdx.app.log("Game", "Both players finished! Chapter complete!");
@@ -320,20 +321,20 @@ public class GameScreen implements Screen {
     }
 
     private void endChapter() {
-        int chapterNumber = spiel.getAktuellesKapitelNummer();
+        int chapterNumber = gameController.getCurrentEpisodeNumber();
         Gdx.app.log("Game", "Chapter " + chapterNumber + " completed!");
 
         // Transition to Chapter End Screen
-        game.setScreen(new ChapterEndScreen(game, spiel, chapterNumber));
+        game.setScreen(new ChapterEndScreen(game, gameController, chapterNumber));
     }
 
     private void skipTile() {
         if (currentCard == null) return;
         
-        //Gdx.app.log("Game", spiel.getCurrentPlayer().getName() + " skipped tile #" + (currentPlayerTileCount + 1));
+        //Gdx.app.log("Game", gameController.getCurrentPlayer().getName() + " skipped tile #" + (currentPlayerTileCount + 1));
         
         // Apply skip penalty if needed (handled by game logic)
-        spiel.getCurrentPlayer().plaettchenUeberspringen();
+        gameController.getCurrentPlayer().skipTile();
         
         currentPlayerTileCount++;
         
@@ -341,11 +342,11 @@ public class GameScreen implements Screen {
             handlePlayerFinished();
         } else {
             // Draw next card for the SAME player
-            currentCard = spiel.getAktuellesKapitel().zieheKarte();
+            currentCard = gameController.getCurrentEpisode().drawCard();
             
             if (currentCard != null) {
                 resetTilePosition();
-                //Gdx.app.log("Game", "Drew next tile for " + spiel.getCurrentPlayer().getName());
+                //Gdx.app.log("Game", "Drew next tile for " + gameController.getCurrentPlayer().getName());
             } else {
                 //Gdx.app.log("Game", "ERROR: No more cards in deck!");
             }
@@ -353,8 +354,8 @@ public class GameScreen implements Screen {
     }
 
     private void rotateTile() {
-        if (currentCard != null && currentCard.getPlättchen() != null) {
-            currentCard.getPlättchen().drehen();
+        if (currentCard != null && currentCard.getTile() != null) {
+            currentCard.getTile().rotate();
             //Gdx.app.log("Game", "Tile rotated");
             if (!isDragging) {
                 resetTilePosition();
@@ -364,20 +365,20 @@ public class GameScreen implements Screen {
 
     private void resetTilePosition() {
         Rectangle box = getPreviewBox();
-        if (currentCard != null && currentCard.getPlättchen() != null) {
-            Plättchen plättchen = currentCard.getPlättchen();
-            float plättchenWidth = plättchen.getBreite() * TILE_SIZE;
-            float plättchenHeight = plättchen.getHöhe() * TILE_SIZE;
+        if (currentCard != null && currentCard.getTile() != null) {
+            Tile tile = currentCard.getTile();
+            float tileWidth = tile.getWidth() * TILE_SIZE;
+            float tileHeight = tile.getHeight() * TILE_SIZE;
             
             // Center tile in preview box
-            tilePosition.x = box.x + (box.width - plättchenWidth) / 2f;
-            tilePosition.y = box.y + (box.height - plättchenHeight) / 2f;
+            tilePosition.x = box.x + (box.width - tileWidth) / 2f;
+            tilePosition.y = box.y + (box.height - tileHeight) / 2f;
         }
     }
 
     private void handleChapterEndDialogInput(Vector2 worldPos) {
         if (saveButton.contains(worldPos.x, worldPos.y)) {
-            spiel.spielstandSpeichern();
+            gameController.saveGameState();
             Gdx.app.log("Game", "Game saved!");
             startNextChapter();
         } else if (continueButton.contains(worldPos.x, worldPos.y)) {
@@ -389,10 +390,10 @@ public class GameScreen implements Screen {
     private void startNextChapter() {
         showChapterEndDialog = false;
         
-        int nextChapter = spiel.getAktuellesKapitelNummer() + 1;
+        int nextChapter = gameController.getCurrentEpisodeNumber() + 1;
         if (nextChapter > 24) {
             // Game completed!
-            spiel.endpunkteBerechnen();
+            gameController.calculateFinalScores();
             Gdx.app.log("Game", "All chapters completed! Returning to menu...");
             // TODO: Return to main menu
             return;
@@ -401,11 +402,11 @@ public class GameScreen implements Screen {
         // Reset for next chapter
         currentPlayerTileCount = 0;
         isFirstTileForPlayer = true;
-        spiel.resetEpisodeTracking();
+        gameController.resetEpisodeTracking();
         
         // Load next chapter
-        spiel.kapitelLaden(nextChapter, true);
-        currentCard = spiel.getAktuellesKapitel().zieheKarte();
+        gameController.loadEpisode(nextChapter, true);
+        currentCard = gameController.getCurrentEpisode().drawCard();
         resetTilePosition();
         
         Gdx.app.log("Game", "Starting Chapter " + nextChapter);
@@ -420,7 +421,7 @@ public class GameScreen implements Screen {
         game.shapeRenderer.setProjectionMatrix(camera.combined);
 
         // Draw grid
-        drawGrid(spiel.getCurrentPlayer().getStadtplan());
+        drawGrid(gameController.getCurrentPlayer().getCityGrid());
 
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
@@ -445,9 +446,9 @@ public class GameScreen implements Screen {
     }
 
     private void drawGameUI() {
-        Spieler currentPlayer = spiel.getCurrentPlayer();
-        Spieler[] players = spiel.getSpieler();
-        Spieler otherPlayer = players[0].equals(currentPlayer) ? players[1] : players[0];
+        Player currentPlayer = gameController.getCurrentPlayer();
+        Player[] players = gameController.getPlayers();
+        Player otherPlayer = players[0].equals(currentPlayer) ? players[1] : players[0];
         
         // Panel dimensions
         float panelX = gridStartX + GRID_WORLD_SIZE + 15;
@@ -507,7 +508,7 @@ public class GameScreen implements Screen {
         // Episode and Deck info on same line
         game.font.setColor(new Color(0.6667f, 0.7176f, 0.7686f, 1f)); // #AAB7C4 secondary text
         game.font.getData().setScale(0.8f);
-        game.font.draw(game.batch, "Episode: " + spiel.getAktuellesKapitelNummer(), textX, textY);
+        game.font.draw(game.batch, "Episode: " + gameController.getCurrentEpisodeNumber(), textX, textY);
         
         String deckText = "Deck: " + currentPlayerTileCount + "/24";
         glyphLayout.setText(game.font, deckText);
@@ -531,7 +532,7 @@ public class GameScreen implements Screen {
         
         // Player scores with progress bars
         for (int i = 0; i < 2; i++) {
-            Spieler player = players[i];
+            Player player = players[i];
             boolean isCurrent = player.equals(currentPlayer);
             
             // Player name and score
@@ -546,7 +547,7 @@ public class GameScreen implements Screen {
 
             game.font.setColor(new Color(0.9255f, 0.9412f, 0.9451f, 1f));
             game.font.getData().setScale(0.75f);
-            String playerText = player.getName() + ": " + player.getPunktzahl() + " pts";
+            String playerText = player.getName() + ": " + player.getScore() + " pts";
             game.font.draw(game.batch, playerText, textX, textY);
             textY -= 18;
             
@@ -605,9 +606,9 @@ public class GameScreen implements Screen {
         game.font.getData().setScale(0.85f);
         game.font.draw(game.batch, "Piece Color:", textX, textY);
         
-        if (currentCard != null && currentCard.getPlättchen() != null) {
-            String colorName = currentCard.getPlättchen().getColor().name();
-            Color pieceColor = getColorForBuildingColor(currentCard.getPlättchen().getColor());
+        if (currentCard != null && currentCard.getTile() != null) {
+            String colorName = currentCard.getTile().getColor().name();
+            Color pieceColor = getColorForBuildingColor(currentCard.getTile().getColor());
             
             game.font.setColor(new Color(0.6667f, 0.7176f, 0.7686f, 1f)); // #AAB7C4
             game.font.getData().setScale(0.8f);
@@ -650,7 +651,7 @@ public class GameScreen implements Screen {
         game.shapeRenderer.end();
         
         // Draw help text in preview box if no card
-        if (currentCard == null || currentCard.getPlättchen() == null) {
+        if (currentCard == null || currentCard.getTile() == null) {
             game.batch.begin();
             game.font.setColor(new Color(0.6667f, 0.7176f, 0.7686f, 1f)); // #AAB7C4 help text
             game.font.getData().setScale(0.75f);
@@ -698,7 +699,7 @@ public class GameScreen implements Screen {
         game.font.setColor(Color.YELLOW);
         game.font.getData().setScale(1.5f);
         
-        String title = "Chapter " + spiel.getAktuellesKapitelNummer() + " Complete!";
+        String title = "Chapter " + gameController.getCurrentEpisodeNumber() + " Complete!";
         glyphLayout.setText(game.font, title);
         float titleX = (viewport.getWorldWidth() - glyphLayout.width) / 2f;
         game.font.draw(game.batch, glyphLayout, titleX, viewport.getWorldHeight() / 2f + 150);
@@ -709,8 +710,8 @@ public class GameScreen implements Screen {
         // Show both players' scores
         float y = viewport.getWorldHeight() / 2f + 80;
         for (int i = 0; i < 2; i++) {
-            Spieler player = spiel.getSpieler()[i];
-            String scoreText = player.getName() + ": " + player.getPunktzahl() + " points";
+            Player player = gameController.getPlayers()[i];
+            String scoreText = player.getName() + ": " + player.getScore() + " points";
             glyphLayout.setText(game.font, scoreText);
             float x = (viewport.getWorldWidth() - glyphLayout.width) / 2f;
             game.font.draw(game.batch, glyphLayout, x, y);
@@ -764,10 +765,10 @@ public class GameScreen implements Screen {
     }
 
     private void drawCurrentTile() {
-        if (currentCard == null || currentCard.getPlättchen() == null) return;
+        if (currentCard == null || currentCard.getTile() == null) return;
         
-        Plättchen plättchen = currentCard.getPlättchen();
-        boolean[][] form = plättchen.getForm();
+        Tile tile = currentCard.getTile();
+        boolean[][] form = tile.getShape();
         
         // Check if tile placement would be valid at current position
         boolean wouldBeValid = false;
@@ -777,9 +778,9 @@ public class GameScreen implements Screen {
             
             if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
                 Position pos = new Position(gridX, gridY);
-                wouldBeValid = spiel.getAktuellesKapitel().istPlatzierungGültig(
-                    plättchen,
-                    spiel.getCurrentPlayer().getStadtplan(),
+                wouldBeValid = gameController.getCurrentEpisode().isPlacementValid(
+                    tile,
+                    gameController.getCurrentPlayer().getCityGrid(),
                     pos,
                     isFirstTileForPlayer
                 );
@@ -794,7 +795,7 @@ public class GameScreen implements Screen {
             tileColor = wouldBeValid ? new Color(0.3f, 0.8f, 0.3f, 0.8f) : new Color(0.8f, 0.3f, 0.3f, 0.8f);
         } else {
             // Show actual tile color
-            tileColor = getColorForBuildingColor(plättchen.getColor());
+            tileColor = getColorForBuildingColor(tile.getColor());
         }
         
         game.shapeRenderer.setColor(tileColor);
@@ -831,7 +832,7 @@ public class GameScreen implements Screen {
         game.shapeRenderer.end();
     }
 
-    private void drawGrid(Stadtplan stadtplan) {
+    private void drawGrid(CityGrid cityGrid) {
         gridStartY = (viewport.getWorldHeight() - GRID_WORLD_SIZE) / 2f;
 
         // Draw board frame background (outer border)
@@ -846,15 +847,15 @@ public class GameScreen implements Screen {
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
-                Feld feld = stadtplan.getFeld(i, j);
-                if (feld != null) {
+                Cell cell = cityGrid.getCell(i, j);
+                if (cell != null) {
                     // If the field is occupied (a tile was placed here), draw it differently
-                    if (feld.istBelegt()) {
+                    if (cell.isOccupied()) {
                         // Draw placed building tile
-                        game.shapeRenderer.setColor(getColorForBuildingColor(feld.getColor()));
+                        game.shapeRenderer.setColor(getColorForBuildingColor(cell.getColor()));
                     } else {
                         // Draw base terrain
-                        game.shapeRenderer.setColor(getColorForGeländetyp(feld.getGelände()));
+                        game.shapeRenderer.setColor(getColorForTerrainType(cell.getTerrain()));
                     }
                     game.shapeRenderer.rect(gridStartX + i * TILE_SIZE, gridStartY + j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                 }
@@ -867,16 +868,16 @@ public class GameScreen implements Screen {
         float markerRadius = TILE_SIZE * 0.35f;
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
-                Feld feld = stadtplan.getFeld(i, j);
-                if (feld == null || feld.istBelegt()) continue;
+                Cell cell = cityGrid.getCell(i, j);
+                if (cell == null || cell.isOccupied()) continue;
 
                 float centerX = gridStartX + i * TILE_SIZE + TILE_SIZE / 2f;
                 float centerY = gridStartY + j * TILE_SIZE + TILE_SIZE / 2f;
 
-                if (feld.getGelände() == Geländetyp.BAUM) {
+                if (cell.getTerrain() == TerrainType.TREE) {
                     game.shapeRenderer.setColor(new Color(0.15f, 0.55f, 0.25f, 1f));
                     game.shapeRenderer.circle(centerX, centerY, markerRadius);
-                } else if (feld.getGelände() == Geländetyp.FELS) {
+                } else if (cell.getTerrain() == TerrainType.ROCK) {
                     game.shapeRenderer.setColor(new Color(0.6f, 0.6f, 0.65f, 1f));
                     game.shapeRenderer.circle(centerX, centerY, markerRadius);
                 }
@@ -889,40 +890,40 @@ public class GameScreen implements Screen {
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
-                Feld feld = stadtplan.getFeld(i, j);
-                if (feld == null) continue;
+                Cell cell = cityGrid.getCell(i, j);
+                if (cell == null) continue;
 
                 float x = gridStartX + i * TILE_SIZE;
                 float y = gridStartY + j * TILE_SIZE;
 
-                game.shapeRenderer.setColor(feld.flussUnten ? Color.BLUE : Color.BLACK);
+                game.shapeRenderer.setColor(cell.riverBottom ? Color.BLUE : Color.BLACK);
                 game.shapeRenderer.rect(x, y, TILE_SIZE, LINE_THICKNESS);
 
-                game.shapeRenderer.setColor(feld.flussLinks ? Color.BLUE : Color.BLACK);
+                game.shapeRenderer.setColor(cell.riverLeft ? Color.BLUE : Color.BLACK);
                 game.shapeRenderer.rect(x, y, LINE_THICKNESS, TILE_SIZE);
 
-                game.shapeRenderer.setColor(feld.flussOben ? Color.BLUE : Color.BLACK);
+                game.shapeRenderer.setColor(cell.riverTop ? Color.BLUE : Color.BLACK);
                 game.shapeRenderer.rect(x, y + TILE_SIZE - LINE_THICKNESS, TILE_SIZE, LINE_THICKNESS);
 
-                game.shapeRenderer.setColor(feld.flussRechts ? Color.BLUE : Color.BLACK);
+                game.shapeRenderer.setColor(cell.riverRight ? Color.BLUE : Color.BLACK);
                 game.shapeRenderer.rect(x + TILE_SIZE - LINE_THICKNESS, y, LINE_THICKNESS, TILE_SIZE);
             }
         }
         game.shapeRenderer.end();
 
         // Draw stickers (Brunnen, trees, rocks added by sticker placement)
-        drawStickers(stadtplan);
+        drawStickers(cityGrid);
     }
 
-    private void drawStickers(Stadtplan stadtplan) {
-        for (io.github.myCity.model.Sticker sticker : stadtplan.getSticker()) {
-            io.github.myCity.model.Position pos = sticker.getPos();
+    private void drawStickers(CityGrid cityGrid) {
+        for (io.github.myCity.model.Sticker sticker : cityGrid.getStickers()) {
+            io.github.myCity.model.Position pos = sticker.getPosition();
             float x = gridStartX + pos.getX() * TILE_SIZE;
             float y = gridStartY + pos.getY() * TILE_SIZE;
 
             float radius = TILE_SIZE / 3;
-            switch (sticker.getTyp()) {
-                case BRUNNEN:
+            switch (sticker.getType()) {
+                case WELL:
                     // Cyan/blue well
                     game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
                     game.shapeRenderer.setColor(new Color(0.2f, 0.7f, 0.9f, 1f));
@@ -934,7 +935,7 @@ public class GameScreen implements Screen {
                     game.shapeRenderer.circle(x + TILE_SIZE / 2, y + TILE_SIZE / 2, radius);
                     game.shapeRenderer.end();
                     break;
-                case BAUM_HINZUFÜGEN:
+                case ADD_TREE:
                     // Deep green tree marker
                     game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
                     game.shapeRenderer.setColor(new Color(0.15f, 0.55f, 0.25f, 1f));
@@ -946,7 +947,7 @@ public class GameScreen implements Screen {
                     game.shapeRenderer.circle(x + TILE_SIZE / 2, y + TILE_SIZE / 2, radius);
                     game.shapeRenderer.end();
                     break;
-                case FELS_HINZUFÜGEN:
+                case ADD_ROCK:
                     // Rock marker in gray/stone
                     game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
                     game.shapeRenderer.setColor(new Color(0.45f, 0.45f, 0.5f, 1f));
@@ -984,18 +985,17 @@ public class GameScreen implements Screen {
         }
     }
 
-    private Color getColorForGeländetyp(Geländetyp typ) {
-        switch (typ) {
-            case WIESE:
+    private Color getColorForTerrainType(TerrainType terrainType) {
+        switch (terrainType) {
+            case MEADOW:
                 return new Color(43/255f, 84/255f, 56/255f, 1f);
-            case BAUM:
-                return new Color(25/255f, 102/255f, 38/255f,1f);
-                // return Color.GREEN;
-            case FELS:
+            case TREE:
+                return new Color(25/255f, 102/255f, 38/255f, 1f);
+            case ROCK:
                 return Color.GRAY;
-            case GEBIRGE:
+            case MOUNTAIN:
                 return Color.DARK_GRAY;
-            case WALD:
+            case FOREST:
                 return new Color(0, 0.5f, 0, 1);
             default:
                 return Color.WHITE;

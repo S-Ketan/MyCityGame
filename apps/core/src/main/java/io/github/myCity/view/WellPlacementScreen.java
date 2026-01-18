@@ -13,26 +13,26 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.github.myCity.Main;
-import io.github.myCity.model.Feld;
-import io.github.myCity.model.Geländetyp;
+import io.github.myCity.model.Cell;
+import io.github.myCity.model.TerrainType;
 import io.github.myCity.model.Position;
-import io.github.myCity.model.Spiel;
-import io.github.myCity.model.Spieler;
-import io.github.myCity.model.Stadtplan;
+import io.github.myCity.model.Game;
+import io.github.myCity.model.Player;
+import io.github.myCity.model.CityGrid;
 import io.github.myCity.model.Sticker;
-import io.github.myCity.model.StickerTyp;
+import io.github.myCity.model.StickerType;
 import io.github.myCity.view.UIStyle;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Screen for placing Brunnen (well/fountain) stickers before Episode 3.
- * Each player places one Brunnen on their board.
+ * Screen for placing Well stickers before Episode 3.
+ * Each player places one Well on their board.
  */
-public class BrunnenPlacementScreen implements Screen {
+public class WellPlacementScreen implements Screen {
     private final Main game;
-    private final Spiel spiel;
+    private final Game gameController;
 
     private final OrthographicCamera camera;
     private final Viewport viewport;
@@ -42,40 +42,40 @@ public class BrunnenPlacementScreen implements Screen {
     private static final float TILE_SIZE = 40;
     private static final float GRID_WORLD_SIZE = GRID_SIZE * TILE_SIZE;
 
-    // Valid Brunnen positions (same as sticker positions)
-    private static final Set<Position> VALID_BRUNNEN_POSITIONS = new HashSet<>();
+    // Valid Well positions (same as sticker positions)
+    private static final Set<Position> VALID_WELL_POSITIONS = new HashSet<>();
     static {
         // Row x=5
-        VALID_BRUNNEN_POSITIONS.add(new Position(5, 3));
-        VALID_BRUNNEN_POSITIONS.add(new Position(5, 4));
-        VALID_BRUNNEN_POSITIONS.add(new Position(5, 5));
-        VALID_BRUNNEN_POSITIONS.add(new Position(5, 6));
-        VALID_BRUNNEN_POSITIONS.add(new Position(5, 7));
-        VALID_BRUNNEN_POSITIONS.add(new Position(5, 8));
-        VALID_BRUNNEN_POSITIONS.add(new Position(5, 9));
-        VALID_BRUNNEN_POSITIONS.add(new Position(5, 10));
+        VALID_WELL_POSITIONS.add(new Position(5, 3));
+        VALID_WELL_POSITIONS.add(new Position(5, 4));
+        VALID_WELL_POSITIONS.add(new Position(5, 5));
+        VALID_WELL_POSITIONS.add(new Position(5, 6));
+        VALID_WELL_POSITIONS.add(new Position(5, 7));
+        VALID_WELL_POSITIONS.add(new Position(5, 8));
+        VALID_WELL_POSITIONS.add(new Position(5, 9));
+        VALID_WELL_POSITIONS.add(new Position(5, 10));
         // Row x=6
-        VALID_BRUNNEN_POSITIONS.add(new Position(6, 3));
-        VALID_BRUNNEN_POSITIONS.add(new Position(6, 4));
-        VALID_BRUNNEN_POSITIONS.add(new Position(6, 5));
-        VALID_BRUNNEN_POSITIONS.add(new Position(6, 6));
-        VALID_BRUNNEN_POSITIONS.add(new Position(6, 8));
-        VALID_BRUNNEN_POSITIONS.add(new Position(6, 9));
-        VALID_BRUNNEN_POSITIONS.add(new Position(6, 10));
+        VALID_WELL_POSITIONS.add(new Position(6, 3));
+        VALID_WELL_POSITIONS.add(new Position(6, 4));
+        VALID_WELL_POSITIONS.add(new Position(6, 5));
+        VALID_WELL_POSITIONS.add(new Position(6, 6));
+        VALID_WELL_POSITIONS.add(new Position(6, 8));
+        VALID_WELL_POSITIONS.add(new Position(6, 9));
+        VALID_WELL_POSITIONS.add(new Position(6, 10));
         // Row x=7
-        VALID_BRUNNEN_POSITIONS.add(new Position(7, 3));
-        VALID_BRUNNEN_POSITIONS.add(new Position(7, 4));
-        VALID_BRUNNEN_POSITIONS.add(new Position(7, 5));
-        VALID_BRUNNEN_POSITIONS.add(new Position(7, 6));
-        VALID_BRUNNEN_POSITIONS.add(new Position(7, 7));
-        VALID_BRUNNEN_POSITIONS.add(new Position(7, 8));
-        VALID_BRUNNEN_POSITIONS.add(new Position(7, 9));
-        VALID_BRUNNEN_POSITIONS.add(new Position(7, 10));
+        VALID_WELL_POSITIONS.add(new Position(7, 3));
+        VALID_WELL_POSITIONS.add(new Position(7, 4));
+        VALID_WELL_POSITIONS.add(new Position(7, 5));
+        VALID_WELL_POSITIONS.add(new Position(7, 6));
+        VALID_WELL_POSITIONS.add(new Position(7, 7));
+        VALID_WELL_POSITIONS.add(new Position(7, 8));
+        VALID_WELL_POSITIONS.add(new Position(7, 9));
+        VALID_WELL_POSITIONS.add(new Position(7, 10));
         // Row x=8
-        VALID_BRUNNEN_POSITIONS.add(new Position(8, 6));
-        VALID_BRUNNEN_POSITIONS.add(new Position(8, 7));
-        VALID_BRUNNEN_POSITIONS.add(new Position(8, 8));
-        VALID_BRUNNEN_POSITIONS.add(new Position(8, 10));
+        VALID_WELL_POSITIONS.add(new Position(8, 6));
+        VALID_WELL_POSITIONS.add(new Position(8, 7));
+        VALID_WELL_POSITIONS.add(new Position(8, 8));
+        VALID_WELL_POSITIONS.add(new Position(8, 10));
     }
 
     private int currentPlayerIndex = 0;
@@ -85,9 +85,9 @@ public class BrunnenPlacementScreen implements Screen {
     private float gridStartX;
     private float gridStartY;
 
-    public BrunnenPlacementScreen(Main game, Spiel spiel) {
+    public WellPlacementScreen(Main game, Game gameController) {
         this.game = game;
-        this.spiel = spiel;
+        this.gameController = gameController;
 
         camera = new OrthographicCamera();
         viewport = new FitViewport(GRID_WORLD_SIZE + 350, GRID_WORLD_SIZE + 150, camera);
@@ -105,8 +105,8 @@ public class BrunnenPlacementScreen implements Screen {
 
                 Position clickedPos = new Position(gridX, gridY);
 
-                if (isValidBrunnenPosition(clickedPos)) {
-                    placeBrunnen(clickedPos);
+                if (isValidWellPosition(clickedPos)) {
+                    placeWell(clickedPos);
                     return true;
                 }
 
@@ -115,21 +115,21 @@ public class BrunnenPlacementScreen implements Screen {
         });
     }
 
-    private boolean isValidBrunnenPosition(Position pos) {
-        for (Position validPos : VALID_BRUNNEN_POSITIONS) {
+    private boolean isValidWellPosition(Position pos) {
+        for (Position validPos : VALID_WELL_POSITIONS) {
             if (validPos.getX() == pos.getX() && validPos.getY() == pos.getY()) {
-                Stadtplan stadtplan = spiel.getSpieler()[currentPlayerIndex].getStadtplan();
-                Feld feld = stadtplan.getFeld(pos.getX(), pos.getY());
-                if (feld != null) {
-                    if (feld.getGelände() != Geländetyp.WIESE) {
+                CityGrid cityGrid = gameController.getPlayers()[currentPlayerIndex].getCityGrid();
+                Cell cell = cityGrid.getCell(pos.getX(), pos.getY());
+                if (cell != null) {
+                    if (cell.getTerrain() != TerrainType.MEADOW) {
                         return false;
                     }
-                    // Cannot place Brunnen next to a river
-                    if (isAdjacentToRiver(stadtplan, pos.getX(), pos.getY())) {
+                    // Cannot place Well next to a river
+                    if (isAdjacentToRiver(cityGrid, pos.getX(), pos.getY())) {
                         return false;
                     }
-                    for (Sticker s : stadtplan.getSticker()) {
-                        if (s.getPos().getX() == pos.getX() && s.getPos().getY() == pos.getY()) {
+                    for (Sticker s : cityGrid.getStickers()) {
+                        if (s.getPosition().getX() == pos.getX() && s.getPosition().getY() == pos.getY()) {
                             return false;
                         }
                     }
@@ -144,32 +144,32 @@ public class BrunnenPlacementScreen implements Screen {
      * Checks if the given position is adjacent to a river.
      * A field is adjacent to a river if it or any of its neighbors have river edges.
      */
-    private boolean isAdjacentToRiver(Stadtplan stadtplan, int x, int y) {
-        Feld feld = stadtplan.getFeld(x, y);
-        if (feld != null && feld.hatFluss()) {
+    private boolean isAdjacentToRiver(CityGrid cityGrid, int x, int y) {
+        Cell cell = cityGrid.getCell(x, y);
+        if (cell != null && cell.hasRiver()) {
             return true;
         }
 
         // Check all 4 neighbors for river edges
-        Feld top = stadtplan.getFeld(x, y + 1);
-        Feld bottom = stadtplan.getFeld(x, y - 1);
-        Feld left = stadtplan.getFeld(x - 1, y);
-        Feld right = stadtplan.getFeld(x + 1, y);
+        Cell top = cityGrid.getCell(x, y + 1);
+        Cell bottom = cityGrid.getCell(x, y - 1);
+        Cell left = cityGrid.getCell(x - 1, y);
+        Cell right = cityGrid.getCell(x + 1, y);
 
-        if (top != null && top.hatFluss()) return true;
-        if (bottom != null && bottom.hatFluss()) return true;
-        if (left != null && left.hatFluss()) return true;
-        if (right != null && right.hatFluss()) return true;
+        if (top != null && top.hasRiver()) return true;
+        if (bottom != null && bottom.hasRiver()) return true;
+        if (left != null && left.hasRiver()) return true;
+        if (right != null && right.hasRiver()) return true;
 
         return false;
     }
 
-    private void placeBrunnen(Position pos) {
-        Spieler player = spiel.getSpieler()[currentPlayerIndex];
-        Sticker brunnen = new Sticker(StickerTyp.BRUNNEN, pos, "brunnen_episode3");
-        player.getStadtplan().addSticker(brunnen);
+    private void placeWell(Position pos) {
+        Player player = gameController.getPlayers()[currentPlayerIndex];
+        Sticker well = new Sticker(StickerType.WELL, pos, "well_episode3");
+        player.getCityGrid().addSticker(well);
 
-        Gdx.app.log("BrunnenPlacement", player.getName() + " placed BRUNNEN at (" +
+        Gdx.app.log("WellPlacement", player.getName() + " placed WELL at (" +
                    pos.getX() + ", " + pos.getY() + ")");
 
         if (currentPlayerIndex == 0) {
@@ -182,10 +182,10 @@ public class BrunnenPlacementScreen implements Screen {
     }
 
     private void proceedToEpisode3() {
-        Gdx.app.log("BrunnenPlacement", "Both players placed Brunnen. Starting Episode 3...");
-        spiel.resetEpisodeTracking();
-        spiel.kapitelLaden(3, true);
-        game.setScreen(new GameScreen(game, spiel));
+        Gdx.app.log("WellPlacement", "Both players placed Well. Starting Episode 3...");
+        gameController.resetEpisodeTracking();
+        gameController.loadEpisode(3, true);
+        game.setScreen(new GameScreen(game, gameController));
     }
 
     @Override
@@ -208,14 +208,14 @@ public class BrunnenPlacementScreen implements Screen {
         gridStartX = 50;
         gridStartY = (viewport.getWorldHeight() - GRID_WORLD_SIZE) / 2f;
 
-        Stadtplan stadtplan = spiel.getSpieler()[currentPlayerIndex].getStadtplan();
+        CityGrid cityGrid = gameController.getPlayers()[currentPlayerIndex].getCityGrid();
 
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (int x = 0; x < GRID_SIZE; x++) {
             for (int y = 0; y < GRID_SIZE; y++) {
-                Feld feld = stadtplan.getFeld(x, y);
-                if (feld != null) {
-                    game.shapeRenderer.setColor(getColorForGeländetyp(feld.getGelände()));
+                Cell cell = cityGrid.getCell(x, y);
+                if (cell != null) {
+                    game.shapeRenderer.setColor(getColorForTerrainType(cell.getTerrain()));
                     game.shapeRenderer.rect(gridStartX + x * TILE_SIZE, gridStartY + y * TILE_SIZE,
                                            TILE_SIZE, TILE_SIZE);
                 }
@@ -223,12 +223,12 @@ public class BrunnenPlacementScreen implements Screen {
         }
         game.shapeRenderer.end();
 
-        // Highlight valid Brunnen positions
+        // Highlight valid Well positions
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         Color highlightColor = new Color(UIStyle.ACCENT.r, UIStyle.ACCENT.g, UIStyle.ACCENT.b, 0.28f);
 
-        for (Position pos : VALID_BRUNNEN_POSITIONS) {
-            if (isValidBrunnenPosition(pos)) {
+        for (Position pos : VALID_WELL_POSITIONS) {
+            if (isValidWellPosition(pos)) {
                 game.shapeRenderer.setColor(highlightColor);
                 game.shapeRenderer.rect(gridStartX + pos.getX() * TILE_SIZE + 2,
                                        gridStartY + pos.getY() * TILE_SIZE + 2,
@@ -252,12 +252,12 @@ public class BrunnenPlacementScreen implements Screen {
     }
 
     private void drawUI() {
-        Spieler currentPlayer = spiel.getSpieler()[currentPlayerIndex];
+        Player currentPlayer = gameController.getPlayers()[currentPlayerIndex];
 
         game.font.setColor(UIStyle.PRIMARY_TEXT);
         game.font.getData().setScale(1.5f);
 
-        String title = "Episode 3 - Place Brunnen (Well)";
+        String title = "Episode 3 - Place Well";
         glyphLayout.setText(game.font, title);
         game.font.draw(game.batch, title, (viewport.getWorldWidth() - glyphLayout.width) / 2f,
                       viewport.getWorldHeight() - 20);
@@ -273,14 +273,14 @@ public class BrunnenPlacementScreen implements Screen {
         currentY -= 30;
 
         game.font.setColor(UIStyle.PRIMARY_TEXT);
-        game.font.draw(game.batch, "Place your BRUNNEN", rightX, currentY);
+        game.font.draw(game.batch, "Place your WELL", rightX, currentY);
         currentY -= 25;
         game.font.draw(game.batch, "on a highlighted field.", rightX, currentY);
         currentY -= 40;
 
         game.font.setColor(UIStyle.SECONDARY_TEXT);
         game.font.getData().setScale(0.9f);
-        game.font.draw(game.batch, "Brunnen Rule:", rightX, currentY);
+        game.font.draw(game.batch, "Well Rule:", rightX, currentY);
         currentY -= 20;
         game.font.draw(game.batch, "Cover all 4 corners", rightX, currentY);
         currentY -= 20;
@@ -289,17 +289,17 @@ public class BrunnenPlacementScreen implements Screen {
         game.font.getData().setScale(1.0f);
     }
 
-    private Color getColorForGeländetyp(Geländetyp typ) {
-        switch (typ) {
-            case WIESE:
+    private Color getColorForTerrainType(TerrainType type) {
+        switch (type) {
+            case MEADOW:
                 return Color.GREEN;
-            case BAUM:
+            case TREE:
                 return Color.FOREST;
-            case FELS:
+            case ROCK:
                 return Color.GRAY;
-            case GEBIRGE:
+            case MOUNTAIN:
                 return Color.DARK_GRAY;
-            case WALD:
+            case FOREST:
                 return new Color(0, 0.5f, 0, 1);
             default:
                 return Color.WHITE;

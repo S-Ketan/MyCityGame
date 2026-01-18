@@ -8,10 +8,10 @@ class StickerTest {
     @Test
     void testConstructorAndGetters() {
         Position position = new Position(1, 2);
-        Sticker sticker = new Sticker(StickerTyp.BONUSFELD, position, "Testeffekt");
+        Sticker sticker = new Sticker(StickerType.BONUS_FIELD, position, "Test effect");
 
-        assertEquals(StickerTyp.BONUSFELD, sticker.getTyp());
-        assertEquals(position, sticker.getPos());
-        assertEquals("Testeffekt", sticker.getEffektBeschreibung());
+        assertEquals(StickerType.BONUS_FIELD, sticker.getType());
+        assertEquals(position, sticker.getPosition());
+        assertEquals("Test effect", sticker.getEffectDescription());
     }
 }
