@@ -72,12 +72,12 @@ public class MenuScreen implements Screen {
         textFieldStyle.selection = skin.newDrawable("white", UIStyle.DIVIDER);
         skin.add("default", textFieldStyle);
 
-        // Button styling
+        // Button styling with rounded corners
         TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
-        textButtonStyle.up = skin.newDrawable("white", UIStyle.BUTTON);
-        textButtonStyle.down = skin.newDrawable("white", UIStyle.SECONDARY);
-        textButtonStyle.over = skin.newDrawable("white", UIStyle.SECONDARY_SOFT);
-        textButtonStyle.checked = skin.newDrawable("white", UIStyle.SECONDARY);
+        textButtonStyle.up = UIStyle.createRoundedDrawable(UIStyle.BUTTON, 10);
+        textButtonStyle.down = UIStyle.createRoundedDrawable(UIStyle.SECONDARY, 10);
+        textButtonStyle.over = UIStyle.createRoundedDrawable(UIStyle.BUTTON_HOVER, 10);
+        textButtonStyle.checked = UIStyle.createRoundedDrawable(UIStyle.SECONDARY, 10);
         textButtonStyle.font = skin.getFont("default-font");
         textButtonStyle.fontColor = UIStyle.PRIMARY_TEXT;
         textButtonStyle.overFontColor = UIStyle.PRIMARY_TEXT;

@@ -143,19 +143,19 @@ public class ChapterEndScreen implements Screen {
         rockIconStyle.fontColor = new Color(0.8f, 0.8f, 0.85f, 1f);
         skin.add("rockIcon", rockIconStyle);
 
-        // Button style
+        // Button style with rounded corners
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
-        buttonStyle.up = skin.newDrawable("white", UIStyle.BUTTON);
-        buttonStyle.down = skin.newDrawable("white", UIStyle.SECONDARY);
-        buttonStyle.over = skin.newDrawable("white", UIStyle.SECONDARY_SOFT);
+        buttonStyle.up = UIStyle.createRoundedDrawable(UIStyle.POSITIVE, 10);
+        buttonStyle.down = UIStyle.createRoundedDrawable(UIStyle.SECONDARY, 10);
+        buttonStyle.over = UIStyle.createRoundedDrawable(new Color(0.4f, 0.85f, 0.6f, 1f), 10);
         buttonStyle.font = game.font;
         buttonStyle.fontColor = UIStyle.PRIMARY_TEXT;
         skin.add("default", buttonStyle);
 
         TextButton.TextButtonStyle blueButtonStyle = new TextButton.TextButtonStyle();
-        blueButtonStyle.up = skin.newDrawable("white", UIStyle.SECONDARY);
-        blueButtonStyle.down = skin.newDrawable("white", UIStyle.PANEL);
-        blueButtonStyle.over = skin.newDrawable("white", UIStyle.SECONDARY_SOFT);
+        blueButtonStyle.up = UIStyle.createRoundedDrawable(UIStyle.BUTTON, 10);
+        blueButtonStyle.down = UIStyle.createRoundedDrawable(UIStyle.PANEL, 10);
+        blueButtonStyle.over = UIStyle.createRoundedDrawable(UIStyle.BUTTON_HOVER, 10);
         blueButtonStyle.font = game.font;
         blueButtonStyle.fontColor = UIStyle.PRIMARY_TEXT;
         skin.add("blue", blueButtonStyle);
