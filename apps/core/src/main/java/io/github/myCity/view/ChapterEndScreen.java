@@ -312,13 +312,13 @@ public class ChapterEndScreen implements Screen {
         // Buttons
         Table buttonTable = new Table();
 
-        TextButton saveButton = new TextButton("Save & Continue", skin, "default");
+        TextButton saveButton = new TextButton("Quit", skin, "default");
         saveButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 gameController.saveGameState();
                 Gdx.app.log("ChapterEnd", "Game saved!");
-                startNextChapter();
+                game.setScreen(new MenuScreen(game));
             }
         });
 
