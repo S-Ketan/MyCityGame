@@ -37,7 +37,6 @@ public class MenuScreen implements Screen {
     private TextField player2NameField;
     private TextButton newGameButton;
     private TextButton episodeButton;
-    private TextButton loadButton;
     private TextButton quitButton;
 
 
@@ -107,7 +106,6 @@ public class MenuScreen implements Screen {
 
         newGameButton = new TextButton("New Game", skin);
         episodeButton = new TextButton("Episodes", skin);
-        loadButton = new TextButton("Load", skin);
         quitButton = new TextButton("Quit", skin);
 
         Label title = new Label("My City", skin);
@@ -127,8 +125,6 @@ public class MenuScreen implements Screen {
         table.row();
         table.add(episodeButton).width(260).height(46).padBottom(10);
         table.row();
-        table.add(loadButton).width(260).height(46).padBottom(10);
-        table.row();
         table.add(quitButton).width(260).height(46);
 
         newGameButton.addListener(new ClickListener() {
@@ -144,14 +140,6 @@ public class MenuScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 Gdx.app.log("Menu", "Episodes clicked");
                 game.setScreen(new EpisodeScreen(game));
-            }
-        });
-
-        loadButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.log("Menu", "Load clicked");
-                // Here you would load a game
             }
         });
 

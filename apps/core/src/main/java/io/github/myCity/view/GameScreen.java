@@ -58,9 +58,16 @@ public class GameScreen implements Screen {
     private final Rectangle previewBox = new Rectangle();
 
     public GameScreen(Main game, String player1Name, String player2Name) {
+        this(game, player1Name, player2Name, 1);
+    }
+
+    public GameScreen(Main game, String player1Name, String player2Name, int startEpisode) {
         this.game = game;
         this.gameController = new Game();
         this.gameController.startNewGame(player1Name, player2Name);
+        if (startEpisode > 1) {
+            this.gameController.loadEpisode(startEpisode);
+        }
         this.currentCard = gameController.getCurrentEpisode().drawCard();
 
         camera = new OrthographicCamera();
