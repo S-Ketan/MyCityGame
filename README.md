@@ -7,7 +7,7 @@ wie das Spiel gestartet und gesteuert wird.
 👉 **Wichtig:**  
 Diese README beschreibt **nur den Projektstart und die grundlegende Nutzung**.  
 Eine detaillierte Erklärung der Spielbedienung befindet sich in der Datei  
-[`Dokumentation`](./Spieldokumentation.md).
+[`Spieldokumentation`](.Dokumentation/Spieldokumentation.md).
 
 ---
 
