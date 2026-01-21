@@ -7,7 +7,7 @@ wie das Spiel gestartet und gesteuert wird.
 👉 **Wichtig:**  
 Diese README beschreibt **nur den Projektstart und die grundlegende Nutzung**.  
 Eine detaillierte Erklärung der Spielbedienung befindet sich in der Datei  
-[`Spieldokumentation`](.https://gitlab.hof-university.de/s-sys-e/my-city/-/blob/main/Dokumentation/Spieledokumentation.md).
+[`Spieldokumentation`](https://gitlab.hof-university.de/s-sys-e/my-city/-/blob/main/Dokumentation/Spieledokumentation.md).
 
 ---
 
